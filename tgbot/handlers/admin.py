@@ -7,6 +7,6 @@ admin_router = Router()
 admin_router.message.filter(AdminFilter())
 
 
-@admin_router.message(commands=["start"], state="*")
-async def admin_start(message: Message):
-    await message.reply("Вітаю, адміне!")
+# @admin_router.message(commands=["start"], state="*")
+# async def admin_start(message: Message):
+#     await message.reply("Вітаю, адміне!")

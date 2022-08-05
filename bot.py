@@ -9,6 +9,7 @@ from tgbot.handlers.admin import admin_router
 from tgbot.handlers.user import user_router
 from tgbot.middlewares.config import ConfigMiddleware
 from tgbot.services import broadcaster
+from tgbot.db import start_db
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ async def main():
     register_global_middlewares(dp, config)
 
     await on_startup(bot, config.tg_bot.admin_ids)
+    await start_db.postgre_start()
     await dp.start_polling(bot)
 
 

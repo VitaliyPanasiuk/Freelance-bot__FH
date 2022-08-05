@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 from environs import Env
 
-
+DB_URI = 'postgres://dciydempsuflmu:c58efd2b3ec4d432bcdccf401c5343ca2c09c3c6d8d9f1e8f2698330e3572ff3@ec2-50-19-255-190.compute-1.amazonaws.com:5432/db03aoprqprn98'
+import psycopg2
+from psycopg2 import sql
 @dataclass
 class DbConfig:
     host: str
