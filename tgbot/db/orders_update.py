@@ -4,6 +4,7 @@ from psycopg2.extensions import AsIs
 from tgbot.config import  DB_URI
 
 
+
 async def reg_order(id,time, username,comment,pages,topic,type):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()

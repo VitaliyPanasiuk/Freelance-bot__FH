@@ -19,6 +19,7 @@ class mailing(StatesGroup):
     get_answer = State()
     get_author = State()
     get_author_private = State()
+    get_order_id = State()
 class reg_author(StatesGroup):
     get_card = State()
     get_speciality = State()

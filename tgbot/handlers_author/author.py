@@ -14,7 +14,7 @@ from tgbot.filters.authors import AuthorFilter
 from tgbot.misc.states import mailing, reg_author
 from tgbot.misc.function import check_id,auf_author
 
-from tgbot.keyboards.textBtn import typeBtn
+from tgbot.keyboards.textBtn import typeBtn,answer_speciality
 
 from tgbot.db import orders_update
 
@@ -31,17 +31,17 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 async def admin_start(message: Message, state: FSMContext):
     auf_status = await auf_author(str(message.from_user.id))
     if auf_status:
-        await message.reply("Привет!")
+        await message.reply("Вітання!")
     else:
-        await message.reply("Привет!\nОтправь мне номер своей карты")
+        await message.reply("Вітання!\Надішліть мені номер своєї карти")
         await state.set_state(reg_author.get_card)
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_card)
 async def admin_start(message: Message, state: FSMContext):
     text = message.text
     await state.update_data(get_card=text) 
-    
-    await bot2.send_message(message.from_user.id,"Отлично, теперь отправь мне свои специальности через запятую")
+    btn = answer_speciality()
+    await bot2.send_message(message.from_user.id,"Відмінно, тепер надішліть мені свою спеціальність",reply_markup=btn.as_markup(resize_keyboard=True))
     await state.set_state(reg_author.get_speciality)
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_speciality)
@@ -53,7 +53,7 @@ async def admin_start(message: Message, state: FSMContext):
     await state.update_data(get_speciality=texts) 
     data = await state.get_data()
 
-    await bot2.send_message(message.from_user.id,"Отлично, теперь ты зарегистрирован ")
+    await bot2.send_message(message.from_user.id,"Відмінно, тепер ти зареєстрований ")
     await orders_update.reg_author(str(message.from_user.id),data['get_card'],data['get_speciality'])
 
     await state.clear()
@@ -65,17 +65,16 @@ async def admin_start(message: Message, state: FSMContext):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(userid),)
-    cur.execute('''SELECT * FROM orders WHERE author_id = %s ''',data)
+    cur.execute('''SELECT * FROM orders WHERE author_id = %s ORDER BY priority DESC''',data)
     orders = cur.fetchall()
     for order in orders:
-        await bot2.send_message(userid,f'''
-id: {order[0]}
-date: {order[2]}
-contacts: {order[3]}
-type: {order[5]}
-pages: {order[6]}
-topic: {order[7]}
-comment: {order[18]}
+        await bot2.send_message(userid,f'''id: {order[0][0]}
+Вид роботи: {order[0][5]}
+Тема роботи: {order[0][7]}
+Обсяг роботи: {order[0][6]} ст.
+Унікальність роботи: {order[0][8]}
+Спеціальність: {order[0][4]}
+Коментарий: {order[0][18]}
                                 ''')
         
         

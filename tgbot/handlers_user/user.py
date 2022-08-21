@@ -98,7 +98,6 @@ async def typeOfOrder(message: types.Message, state: FSMContext):
     await state.clear()
     await bot.send_message(userid,"Супер! Я вже передаю твою інформацію нашому менеджеру. Він зв’яжеться з тобою найближчим часом. Гарного дня :)", reply_markup=types.ReplyKeyboardRemove())
     await orders_update.new_order(generated_id)
-    await search_author(state,str(generated_id))
     
 
     

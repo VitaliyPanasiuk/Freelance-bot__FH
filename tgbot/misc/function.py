@@ -15,6 +15,7 @@ from tgbot.db import orders_update
 from tgbot.keyboards.textBtn import answer_request,answer_request2
 
 import asyncio
+import datetime
 
 author2_router = Router()
 config = load_config(".env")
@@ -55,43 +56,43 @@ async def auf_author(id):
 async def search_author(state: FSMContext, generated_id): 
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness ORDER BY rating DESC')
-    authors = cur.fetchall()
     data = (str(generated_id),)
     cur.execute('SELECT * FROM orders WHERE id = %s', data)
     order = cur.fetchall()
+    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
+    authors = cur.fetchall()
+    
     flag = False
     author_ids = ''
     btn = answer_request()
     for author in authors:
-        print('start for')
-        await bot2.send_message(author[0],f'''Тип роботы: {order[0][5]}
-Тема работы: {order[0][7]}
-Обьем работы: {order[0][6]} ст.
-Контакты: @{order[0][3]}
-Коментарий: {order[0][18]}
-                                ''',reply_markup=btn.as_markup(resize_keyboard=True))
-        await state.set_state(getOrder.answer)  
-        await asyncio.sleep(10)
-        try:
-            data = (str(author[0]),)
-            cur.execute('SELECT answer FROM authors WHERE id = %s', data)
-            answer = cur.fetchall()
-            if str(answer[0][0]) == 'прийняти':
-                flag = True
-                author_ids = author[0]
+        if author[7] == order[0][4]:
+            await bot2.send_message(author[0],f'''id: {order[0][0]}
+    Вид роботи: {order[0][5]}
+    Тема роботи: {order[0][7]}
+    Обсяг роботи: {order[0][6]} ст.
+    Унікальність роботи: {order[0][8]}
+    Спеціальність: {order[0][4]}
+    Коментарий: {order[0][18]}
+                                    ''',reply_markup=btn.as_markup(resize_keyboard=True))
+            await state.set_state(getOrder.answer)  
+            await asyncio.sleep(10)
+            try:
+                data = (str(author[0]),)
+                cur.execute('SELECT answer FROM authors WHERE id = %s', data)
+                answer = cur.fetchall()
+                if str(answer[0][0]) == 'прийняти':
+                    flag = True
+                    author_ids = author[0]
+                    await state.clear()
+                    break
+            except KeyError: 
                 await state.clear()
-                break
-        except KeyError: 
-            await state.clear()
-    print('end for')
     if flag == False:
-        print('false')
         await orders_update.decline_order(generated_id)
         await orders_update.update_answer(NULL,str(author_ids))
         await search_private_author(generated_id)
     else:
-        print('true')
         await orders_update.confirm_order(generated_id, str(author_ids))
         await orders_update.update_busyness(order[0][5], str(author_ids))
         await orders_update.update_answer(NULL,str(author_ids))
@@ -107,10 +108,12 @@ async def search_private_author(generated_id):
     order = cur.fetchall()
     btn = answer_request2()
     for author in authors:
-            await bot2.send_message(author[0],f'''Тип роботы: {order[0][5]}
-Тема работы: {order[0][7]}
-Обьем работы: {order[0][6]} ст.
-Контакты: @{order[0][3]}
+        await bot2.send_message(author[0],f'''id: {order[0][0]}
+Вид роботи: {order[0][5]}
+Тема роботи: {order[0][7]}
+Обсяг роботи: {order[0][6]} ст.
+Унікальність роботи: {order[0][8]}
+Спеціальність: {order[0][4]}
 Коментарий: {order[0][18]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
     await asyncio.sleep(10)
@@ -152,7 +155,7 @@ async def test_start(message: Message, state: FSMContext):
 async def get_list_of_authors():
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    cur.execute('SELECT * FROM authors ')
+    cur.execute('SELECT * FROM authors')
     users = cur.fetchall()
     answer = []
     for user in users:
@@ -160,4 +163,124 @@ async def get_list_of_authors():
     cur.close()
     base.close()
     return answer
+
+async def alert8():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        cur.execute('''SELECT * FROM orders WHERE status IN ('План')''')
+        orders = cur.fetchall()
+        for order in orders:
+            now = datetime.datetime.now()
+            time = datetime.datetime.strptime(order[12],"%d-%m-%Y %H:%M")
+            text36 = datetime.timedelta(days =1, hours=12)
+            text24 = datetime.timedelta(days =1)
+            text48 = datetime.timedelta(days =2)
+            hours24 = time + text24
+            hours36 = time + text36
+            hours48 = time + text48
+            if now < hours48:
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
+            elif now < hours36:
+                if orders[27] < 3:
+                    data = (3,str(order[0]))
+                    cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
+            elif now < hours24:
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно скласти та надіслати план протягом 12год')
+        await asyncio.sleep(43200)
+
+
+async def alert12():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі')''')
+        orders = cur.fetchall()
+        for order in orders:
+            now = datetime.datetime.now()
+            time = datetime.datetime.strptime(order[26],"%d-%m-%Y %H:%M")
+            text120 = datetime.timedelta(hours=120)
+            text72 = datetime.timedelta(hours=72)
+            text48 = datetime.timedelta(hours=48)
+            text24 = datetime.timedelta(hours=24)
+            text12 = datetime.timedelta(hours=12)
+            hours120 = time - text120
+            hours72 = time - text72
+            hours48 = time - text48
+            hours24 = time - text24
+            hours12 = time - text12
+            if now > hours12:
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
+            elif now > hours24 and orders[27] != '12 - 24h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', завтра дедлайн - ' + str(orders[26]))
+                if orders[27] <= 4:
+                    data = (5,str(order[0]))
+                    cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
+                data = ('12 - 24h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+            elif now > hours48 and orders[27] != '12 - 48h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 2 дні - ' + str(orders[26]))
+                data = ('12 - 48h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+                if orders[27] <= 3:
+                    data = (4,str(order[0]))
+                    cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
+            elif now > hours72 and orders[27] != '12 - 72h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 3 дні - ' + str(orders[26]))
+                data = ('12 - 72h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+            elif now > hours120 and orders[27] != '12 - 120h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 5 днів - ' + str(orders[26]))
+                data = ('12 - 120h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+        await asyncio.sleep(43200)
+        
+async def alert16():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі')''')
+        orders = cur.fetchall()
+        for order in orders:
+            now = datetime.datetime.now()
+            time = datetime.datetime.strptime(order[26],"%d-%m-%Y %H:%M")
+            text120 = datetime.timedelta(hours=120)
+            text72 = datetime.timedelta(hours=72)
+            text48 = datetime.timedelta(hours=48)
+            text24 = datetime.timedelta(hours=24)
+            text12 = datetime.timedelta(hours=12)
+            hours120 = time - text120
+            hours72 = time - text72
+            hours48 = time - text48
+            hours24 = time - text24
+            hours12 = time - text12
+            if now > hours12:
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
+            elif now > hours24 and orders[27] != '16 - 24h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 1 день - ' + str(orders[26]))
+                if orders[27] <= 4:
+                    data = (5,str(order[0]))
+                    cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
+                data = ('16 - 24h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+            elif now > hours48 and orders[27] != '16 - 48h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 2 дні - ' + str(orders[26]))
+                data = ('16 - 48h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+                if orders[27] <= 3:
+                    data = (4,str(order[0]))
+                    cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
+            elif now > hours72 and orders[27] != '16 - 72h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 3 дні - ' + str(orders[26]))
+                data = ('16 - 72h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+            elif now > hours120 and orders[27] != '16 - 120h':
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 5 днів - ' + str(orders[26]))
+                data = ('16 - 120h',str(order[0]))
+                cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+        await asyncio.sleep(43200)
+            
+                
+                    
 

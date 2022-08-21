@@ -33,10 +33,10 @@ async def postgre_start():
         pages int,
         topic text,
         uniqueness int,
-        deadline text,
+        real_deadline text,
         files text,
         status text,
-        date_take text,
+        fix_date text,
         author_id text REFERENCES authors(id),
         price int,
         price_status boolean,
@@ -49,7 +49,10 @@ async def postgre_start():
         city text,
         uni text,
         faculty text,
-        sec_author text
+        sec_author text,
+        fact_deadline text,
+        priority int default 3, 
+        com_alert text default 0
         )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS admins(
         id serial primary key,

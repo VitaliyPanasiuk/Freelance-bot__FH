@@ -11,11 +11,14 @@ from aiogram.dispatcher.fsm.state import State, StatesGroup
 
 from tgbot.misc.states import mailing,reg_author
 from tgbot.misc.function import get_list_of_authors
+from tgbot.misc.function import check_id, search_author
 
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import AsIs
 from tgbot.config import  DB_URI
+
+import asyncio
 
 
 admin_router = Router()
@@ -78,4 +81,18 @@ async def admin_start(message: Message, state: FSMContext):
     
     base.commit()
     cur.close()
+    
     base.close()
+@admin_router.message(commands=["search_author"])
+async def admin_start(message: Message, state: FSMContext):
+    await message.reply("Отправьте id заказа!")
+    await state.set_state(mailing.get_order_id)
+    
+    
+@admin_router.message(content_types=types.ContentType.TEXT, state=mailing.get_order_id)
+async def admin_start(message: Message, state: FSMContext):
+    text = message.text
+    await search_author(state,str(text))
+    
+    
+
