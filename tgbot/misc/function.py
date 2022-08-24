@@ -1,4 +1,5 @@
-from asyncio.windows_events import NULL
+# from asyncio.windows_events import NULL
+# from curses.ascii import NUL
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import AsIs
@@ -91,12 +92,12 @@ async def search_author(state: FSMContext, generated_id):
                 await state.clear()
     if flag == False:
         await orders_update.decline_order(generated_id)
-        await orders_update.update_answer(NULL,str(author_ids))
+        await orders_update.update_answer(None,str(author_ids))
         await search_private_author(generated_id)
     else:
         await orders_update.confirm_order(generated_id, str(author_ids))
         await orders_update.update_busyness(order[0][5], str(author_ids))
-        await orders_update.update_answer(NULL,str(author_ids))
+        await orders_update.update_answer(None,str(author_ids))
         
         
 async def search_private_author(generated_id): 
@@ -126,16 +127,16 @@ async def search_private_author(generated_id):
             await orders_update.confirm_order(generated_id, str(authors[0][0]))
             await orders_update.update_price(generated_id,str(authors[0][11]))
             await orders_update.update_busyness(order[0][5], authors[0][0])
-            await orders_update.update_answer(NULL,str(authors[0][0]))
+            await orders_update.update_answer(None,str(authors[0][0]))
     except KeyError: 
         print('err') 
     try:
         if int(authors[0][1]) > 1:
             await orders_update.confirm_sec_order(generated_id, str(authors[0][0]))
-            await orders_update.update_answer(NULL,str(authors[0][0]))
+            await orders_update.update_answer(None,str(authors[0][0]))
     except KeyError: 
         print('err') 
-    await orders_update.update_answer(NULL,str(authors[0][0]))
+    await orders_update.update_answer(None,str(authors[0][0]))
     
     
 @author2_router.message_handler(text = ['прийняти','відхилити','прийняти замовлення'])
