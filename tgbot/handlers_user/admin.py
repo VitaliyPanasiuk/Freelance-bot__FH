@@ -88,7 +88,6 @@ async def admin_start(message: Message, state: FSMContext):
     await message.reply("Отправьте id заказа!")
     await state.set_state(mailing.get_order_id)
     
-    
 @admin_router.message(content_types=types.ContentType.TEXT, state=mailing.get_order_id)
 async def admin_start(message: Message, state: FSMContext):
     text = message.text

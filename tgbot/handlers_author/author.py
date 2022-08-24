@@ -33,7 +33,7 @@ async def admin_start(message: Message, state: FSMContext):
     if auf_status:
         await message.reply("Вітання!")
     else:
-        await message.reply("Вітання!\Надішліть мені номер своєї карти")
+        await message.reply("Вітання!\nНадішліть мені номер своєї карти")
         await state.set_state(reg_author.get_card)
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_card)

@@ -68,12 +68,13 @@ async def search_author(state: FSMContext, generated_id):
     for author in authors:
         if author[7] == order[0][4]:
             await bot2.send_message(author[0],f'''id: {order[0][0]}
-    Вид роботи: {order[0][5]}
-    Тема роботи: {order[0][7]}
-    Обсяг роботи: {order[0][6]} ст.
-    Унікальність роботи: {order[0][8]}
-    Спеціальність: {order[0][4]}
-    Коментарий: {order[0][18]}
+Вид роботи: {order[0][5]}
+Тема роботи: {order[0][7]}
+Обсяг роботи: {order[0][6]} ст.
+Унікальність роботи: {order[0][8]}
+Спеціальність: {order[0][4]}
+Коментар: {order[0][18]}
+Ціна: {order[0][16]}
                                     ''',reply_markup=btn.as_markup(resize_keyboard=True))
             await state.set_state(getOrder.answer)  
             await asyncio.sleep(10)
@@ -114,7 +115,8 @@ async def search_private_author(generated_id):
 Обсяг роботи: {order[0][6]} ст.
 Унікальність роботи: {order[0][8]}
 Спеціальність: {order[0][4]}
-Коментарий: {order[0][18]}
+Коментар: {order[0][18]}
+Ціна: {order[0][16]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
     await asyncio.sleep(10)
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer DESC')
