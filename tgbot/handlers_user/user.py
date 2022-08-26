@@ -47,7 +47,17 @@ async def typeOfOrder(message: types.Message, state: FSMContext):
         await state.update_data(type=answer) 
         await state.update_data(username=userName) 
         await bot.send_message(userid,"Яка у тебе тема?", reply_markup=types.ReplyKeyboardRemove())
-        await state.set_state(getOrder.topic)   
+        await state.set_state(getOrder.topic)  
+
+@user_router.message_handler(content_types=types.ContentType.TEXT, state=getOrder.new_type)
+async def typeOfOrder(message: types.Message, state: FSMContext):
+    userid = message.from_user.id
+    userName = message.from_user.username
+    answer = message.text
+    await state.update_data(type=answer) 
+    await state.update_data(username=userName) 
+    await bot.send_message(userid,"Яка у тебе тема?", reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(getOrder.topic)  
         
 @user_router.message_handler(content_types=types.ContentType.TEXT, state=getOrder.type)
 async def typeOfOrder(message: types.Message, state: FSMContext):

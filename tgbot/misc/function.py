@@ -171,7 +171,7 @@ async def alert8():
     while True:
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
-        cur.execute('''SELECT * FROM orders WHERE status IN ('План')''')
+        cur.execute('''SELECT * FROM orders WHERE status IN ('План') and alert = true''')
         orders = cur.fetchall()
         for order in orders:
             now = datetime.datetime.now()
@@ -198,7 +198,7 @@ async def alert12():
     while True:
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
-        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі')''')
+        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі') and alert = true''')
         orders = cur.fetchall()
         for order in orders:
             now = datetime.datetime.now()
@@ -243,7 +243,7 @@ async def alert16():
     while True:
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
-        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі')''')
+        cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі') and alert = true''')
         orders = cur.fetchall()
         for order in orders:
             now = datetime.datetime.now()
