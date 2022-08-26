@@ -42,7 +42,8 @@ async def typeOfOrder(message: types.Message, state: FSMContext):
     userName = message.from_user.username
     answer = message.text
     if answer == 'Інше':
-        await state.set_state(getOrder.new_type) 
+        await state.set_state(getOrder.new_type)
+        await bot.send_message(userid,"Опиши свій вид роботи.", reply_markup=types.ReplyKeyboardRemove()) 
     else:
         await state.update_data(type=answer) 
         await state.update_data(username=userName) 
