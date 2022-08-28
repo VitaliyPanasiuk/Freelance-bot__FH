@@ -16,6 +16,7 @@ class private_get(StatesGroup):
     money = State()
     
 class mailing(StatesGroup):
+    get_teamlead = State()
     get_answer = State()
     get_author = State()
     get_author_private = State()

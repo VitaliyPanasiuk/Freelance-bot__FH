@@ -14,6 +14,7 @@ from aiogram.dispatcher.fsm.state import State, StatesGroup
 from tgbot.misc.states import getOrder, private_get
 from tgbot.db import orders_update
 from tgbot.keyboards.textBtn import answer_request,answer_request2
+from random import randint
 
 import asyncio
 import datetime
@@ -54,7 +55,7 @@ async def auf_author(id):
 
 
 
-async def search_author(state: FSMContext, generated_id): 
+async def search_author(generated_id): 
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(generated_id),)
@@ -62,12 +63,12 @@ async def search_author(state: FSMContext, generated_id):
     order = cur.fetchall()
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
     authors = cur.fetchall()
-    
+    print(authors)
     flag = False
     author_ids = ''
     btn = answer_request()
     for author in authors:
-        if author[7] == order[0][4]:
+        if author[7] in order[0][4]:
             await bot2.send_message(author[0],f'''id: {order[0][0]}
 Вид роботи: {order[0][5]}
 Тема роботи: {order[0][7]}
@@ -77,8 +78,8 @@ async def search_author(state: FSMContext, generated_id):
 Коментар: {order[0][18]}
 Ціна: {order[0][16]}
                                     ''',reply_markup=btn.as_markup(resize_keyboard=True))
-            await state.set_state(getOrder.answer)  
-            await asyncio.sleep(10)
+            # await state.set_state(getOrder.answer)  
+            await asyncio.sleep(300)
             try:
                 data = (str(author[0]),)
                 cur.execute('SELECT answer FROM authors WHERE id = %s', data)
@@ -86,10 +87,11 @@ async def search_author(state: FSMContext, generated_id):
                 if str(answer[0][0]) == 'прийняти':
                     flag = True
                     author_ids = author[0]
-                    await state.clear()
+                    # await state.clear()
                     break
             except KeyError: 
-                await state.clear()
+                # await state.clear()
+                print('err')
     if flag == False:
         await orders_update.decline_order(generated_id)
         await orders_update.update_answer(None,str(author_ids))
@@ -119,7 +121,7 @@ async def search_private_author(generated_id):
 Коментар: {order[0][18]}
 Ціна: {order[0][16]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
-    await asyncio.sleep(10)
+    await asyncio.sleep(7200)
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer DESC')
     authors = cur.fetchall()
     try:
@@ -155,10 +157,11 @@ async def test_start(message: Message, state: FSMContext):
     await orders_update.update_answer(message.text,str(message.from_user.id))
     await state.clear()
 
-async def get_list_of_authors():
+async def get_list_of_authors(teamlead):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    cur.execute('SELECT * FROM authors')
+    data = (str(teamlead),)
+    cur.execute('SELECT * FROM authors WHERE teamlead = %s',data)
     users = cur.fetchall()
     answer = []
     for user in users:
@@ -284,6 +287,23 @@ async def alert16():
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
         await asyncio.sleep(43200)
             
-                
-                    
+async def start_search():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        cur.execute('''SELECT * FROM orders WHERE status IN ('Знайти автора')''')
+        orders = cur.fetchall()
+        await search_author(str(orders[0][0]))
+        await asyncio.sleep(100)
+        
+# async def genid_crm():
+#     base = psycopg2.connect(DB_URI,sslmode="require")
+#     cur = base.cursor()
+#     cur.execute('''SELECT * FROM orders WHERE id = 0''')
+#     orders = cur.fetchall()
+#     for order in orders:
+#         generated_id = ''
+#         test = randint(0,1000000)
+#         generated_id = str(test)
+#         cur.execute('UPDATE orders SET author_id=%s WHERE id=%s', data)              
 

@@ -31,7 +31,7 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 async def admin_start(message: Message, state: FSMContext):
     auf_status = await auf_author(str(message.from_user.id))
     if auf_status:
-        await message.reply("Вітання!")
+        await message.reply("Вітання!mmmm")
     else:
         await message.reply("Вітання!\nНадішліть мені номер своєї карти")
         await state.set_state(reg_author.get_card)
