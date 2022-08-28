@@ -293,7 +293,8 @@ async def start_search():
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('Знайти автора')''')
         orders = cur.fetchall()
-        await search_author(str(orders[0][0]))
+        if orders:
+            await search_author(str(orders[0][0]))
         await asyncio.sleep(100)
         
 # async def genid_crm():
