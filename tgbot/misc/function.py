@@ -71,14 +71,19 @@ async def search_author(generated_id):
         print(author[7])
         print(order[0][4])
         if order[0][4] in author[7]:
+            money = 0
+            costs = order[0][16].split(',')
+            money += int(costs[0])
+            money += int(costs[1])
             await bot2.send_message(author[0],f'''id: {order[0][0]}
 Вид роботи: {order[0][5]}
 Тема роботи: {order[0][7]}
 Обсяг роботи: {order[0][6]} ст.
 Унікальність роботи: {order[0][8]}
 Спеціальність: {order[0][4]}
+Дедлайн: {order[0][26]}
 Коментар: {order[0][18]}
-Ціна: {order[0][16]}
+Ціна: {money}
                                     ''',reply_markup=btn.as_markup(resize_keyboard=True))
             # await state.set_state(getOrder.answer)  
             await asyncio.sleep(300)
@@ -106,6 +111,7 @@ async def search_author(generated_id):
         
         
 async def search_private_author(generated_id): 
+    print('start_private')
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY rating DESC')
@@ -121,31 +127,32 @@ async def search_private_author(generated_id):
 Обсяг роботи: {order[0][6]} ст.
 Унікальність роботи: {order[0][8]}
 Спеціальність: {order[0][4]}
+Дедлайн: {order[0][26]}
 Коментар: {order[0][18]}
-Ціна: {order[0][16]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
-    await asyncio.sleep(7200)
-    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer DESC')
+    await asyncio.sleep(15)
+    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer')
     authors = cur.fetchall()
-    try:
+    print(authors[0])
+    print(authors[1])
+    if authors[0][0]:
         if int(authors[0][0]) > 1:
+            money = int(authors[0][11]) / 2
             await orders_update.confirm_order(generated_id, str(authors[0][0]))
-            await orders_update.update_price(generated_id,str(authors[0][11]))
+            await orders_update.update_price(generated_id,str(money)+ ',' + str(money))
             await orders_update.update_busyness(order[0][5], authors[0][0])
             await orders_update.update_answer(None,str(authors[0][0]))
-    except KeyError: 
-        print('err') 
-    try:
-        if int(authors[0][1]) > 1:
-            await orders_update.confirm_sec_order(generated_id, str(authors[0][0]))
-            await orders_update.update_answer(None,str(authors[0][0]))
-    except KeyError: 
-        print('err') 
+    if authors[1][0]:
+        if int(authors[1][0]) > 1:
+            money = int(authors[1][11]) / 2
+            await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+            await orders_update.update_answer(None,str(authors[1][0]))
+            await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
     await orders_update.update_answer(None,str(authors[0][0]))
     await bot2.send_message(str(authors[0][0]),'Вітаю! Ваша ставка перемогла')
     
-    
-@author2_router.message_handler(text = ['прийняти','відхилити','прийняти замовлення'])
+# text = ['прийняти','відхилити','прийняти замовлення']
+@author2_router.message_handler()
 async def test_start(message: Message, state: FSMContext):
     if message.text == 'прийняти':
         await orders_update.update_answer('прийняти',str(message.from_user.id))
@@ -154,7 +161,8 @@ async def test_start(message: Message, state: FSMContext):
     elif message.text == 'прийняти замовлення':
         await bot2.send_message(message.from_user.id,'надішліть ціну')
         await state.set_state(private_get.money)  
-        
+    else:
+         await orders_update.update_answer(message.text,str(message.from_user.id))
         
 @author2_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
 async def test_start(message: Message, state: FSMContext):
@@ -220,6 +228,11 @@ async def alert12():
             hours48 = time - text48
             hours24 = time - text24
             hours12 = time - text12
+            print(order)
+            print(order[13])
+            print(order[0])
+            print(order[27])
+            print(order[26])
             if now > hours12:
                 await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
             elif now > hours24 and orders[27] != '12 - 24h':

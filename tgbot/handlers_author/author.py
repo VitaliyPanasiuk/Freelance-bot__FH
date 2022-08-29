@@ -77,17 +77,24 @@ async def admin_start(message: Message, state: FSMContext):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(userid),)
-    cur.execute('''SELECT * FROM orders WHERE author_id = %s ORDER BY priority DESC''',data)
+    cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('План','План готовий','План відправлено','
+План затверджено','В роботі','Правки в роботі') ORDER BY priority DESC''',data)
     orders = cur.fetchall()
     for order in orders:
+        money = 0
+        costs = order[16].split(',')
+        money += int(costs[0])
+        money += int(costs[1])
         await bot2.send_message(userid,f'''id: {order[0]}
+Статус: {order[11]}
 Вид роботи: {order[5]}
 Тема роботи: {order[7]}
 Обсяг роботи: {order[6]} ст.
 Унікальність роботи: {order[8]}
 Спеціальність: {order[4]}
+Дедлайн: {order[26]}
 Коментарий: {order[18]}
-Ціна: {order[16]}
+Ціна: {money}
                                 ''')
         
         
@@ -98,23 +105,31 @@ async def admin_start(message: Message, state: FSMContext):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(userid),)
-    cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('Готово/правки','Правки','Правки в роботі','Правки відправлені','Готово') and costs_status = false ORDER BY priority DESC''',data)
+    cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('Готово/правки','Правки','Правки в роботі','Правки відправлені','Готово') ORDER BY priority DESC''',data)
     orders = cur.fetchall()
+    print(orders)
     for order in orders:
-        await bot2.send_message(userid,f'''id: {order[0]}
-Вид роботи: {order[5]}
+        cost_status = order[17].split(',')
+        costs = order[16].split(',')
+        if cost_status[0] == 'false' and cost_status[1] == 'false':
+            await bot2.send_message(userid,f'''id: {order[0]}
 Тема роботи: {order[7]}
-Обсяг роботи: {order[6]} ст.
-Унікальність роботи: {order[8]}
-Спеціальність: {order[4]}
-Коментарий: {order[18]}
-Ціна: {order[16]}
-                                ''')
-    cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('Готово/правки','Правки','Правки в роботі','Правки відправлені','Готово') and costs_status = false''',data)
+Ціна: {costs[0]}
+                                    ''')
+        elif cost_status[0] == 'true' and cost_status[1] == 'false':
+            await bot2.send_message(userid,f'''id: {order[0]}
+Тема роботи: {order[7]}
+Ціна: {costs[1]}
+                                    ''')
+    cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('Готово/правки','Правки','Правки в роботі','Правки відправлені','Готово')''',data)
     orders = cur.fetchall()
     money = 0
     for order in orders:
-        if order[16]:
-            money += order[16]
-    await bot2.send_message(userid,"Ваш заробіток становитиме: " + money)
+        cost_status = order[17].split(',')
+        costs = order[16].split(',')
+        if cost_status[0] == 'false' and cost_status[1] == 'false':
+            money += int(costs[0])
+        elif cost_status[0] == 'true' and cost_status[1] == 'false':
+            money += int(costs[1]) 
+    await bot2.send_message(userid,"Ваш заробіток становитиме: " + str(money))
 

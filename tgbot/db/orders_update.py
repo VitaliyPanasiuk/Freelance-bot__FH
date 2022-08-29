@@ -49,8 +49,17 @@ async def confirm_sec_order(order_id,author_id):
 async def update_price(order_id,price):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (int(price),str(order_id))
+    data = (str(price),str(order_id))
     cur.execute('UPDATE orders SET costs=%s WHERE id=%s', data)
+    
+    base.commit()
+    cur.close()
+    base.close()
+async def update_sec_price(order_id,price):
+    base = psycopg2.connect(DB_URI,sslmode="require")
+    cur = base.cursor()
+    data = (str(price),str(order_id))
+    cur.execute('UPDATE orders SET sec_costs=%s WHERE id=%s', data)
     
     base.commit()
     cur.close()
