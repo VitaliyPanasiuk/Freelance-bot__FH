@@ -2,15 +2,14 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder,InlineKeyboardButton,Inl
 from aiogram import Bot, types
 
 
-
 def confirm_buttons():
     help_buttons = InlineKeyboardBuilder()
     help_buttons.add(types.InlineKeyboardButton(
-            text='confirm',
-            callback_data='confirm'
+            text='Показати замовлення',
+            callback_data='show'
         ))
     help_buttons.add(types.InlineKeyboardButton(
-            text='skip',
-            callback_data='skip'
+            text='Показати прибуток за тиждень',
+            callback_data='earn'
         ))
     return help_buttons

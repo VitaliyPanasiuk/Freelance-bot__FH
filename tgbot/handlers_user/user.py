@@ -84,7 +84,7 @@ async def typeOfOrder(message: types.Message, state: FSMContext):
 async def typeOfOrder(message: types.Message, state: FSMContext):
     userid = message.from_user.id
     answer = message.text
-    await state.update_data(pages=int(answer)) 
+    await state.update_data(pages=answer) 
     await bot.send_message(userid,"І останнє питання, коли у тебе дедлайн?", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(getOrder.comment)   
     

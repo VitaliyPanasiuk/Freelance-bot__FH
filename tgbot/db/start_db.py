@@ -24,7 +24,7 @@ async def postgre_start():
         private boolean default false
         )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS orders(
-        id varchar(20) primary key,
+        id varchar(20) primary key ,
         source varchar(20),
         date text,
         social text,

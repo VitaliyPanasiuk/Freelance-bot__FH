@@ -68,7 +68,9 @@ async def search_author(generated_id):
     author_ids = ''
     btn = answer_request()
     for author in authors:
-        if author[7] in order[0][4]:
+        print(author[7])
+        print(order[0][4])
+        if order[0][4] in author[7]:
             await bot2.send_message(author[0],f'''id: {order[0][0]}
 Вид роботи: {order[0][5]}
 Тема роботи: {order[0][7]}
@@ -95,6 +97,7 @@ async def search_author(generated_id):
     if flag == False:
         await orders_update.decline_order(generated_id)
         await orders_update.update_answer(None,str(author_ids))
+        await bot2.send_message(str(author_ids),'Вітаю! Ваша ставка перемогла\nid: ' + str(generated_id) + '\nТема роботи: ' + order[0][7])
         await search_private_author(generated_id)
     else:
         await orders_update.confirm_order(generated_id, str(author_ids))
@@ -139,6 +142,7 @@ async def search_private_author(generated_id):
     except KeyError: 
         print('err') 
     await orders_update.update_answer(None,str(authors[0][0]))
+    await bot2.send_message(str(authors[0][0]),'Вітаю! Ваша ставка перемогла')
     
     
 @author2_router.message_handler(text = ['прийняти','відхилити','прийняти замовлення'])
@@ -289,12 +293,18 @@ async def alert16():
             
 async def start_search():
     while True:
+        print('start_search')
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('Знайти автора')''')
         orders = cur.fetchall()
+        print(orders)
         if orders:
             await search_author(str(orders[0][0]))
+        cur.execute('''SELECT * FROM orders WHERE status IN ('Дізнатись ціну')''')
+        orders = cur.fetchall()
+        if orders:
+            await search_private_author(str(orders[0][0]))
         await asyncio.sleep(100)
         
 # async def genid_crm():

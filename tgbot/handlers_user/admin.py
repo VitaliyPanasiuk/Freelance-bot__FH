@@ -32,9 +32,10 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 
 @admin_router.message(commands=["mailing"])
 async def admin_start(message: Message, state: FSMContext):
-    await message.reply("Отправьте id тимлида!")
-    await state.set_state(mailing.get_teamlead)
-    # await state.set_state(mailing.get_answer)
+    # await message.reply("Отправьте id тимлида!")
+    # await state.set_state(mailing.get_teamlead)
+    await message.reply("Отправьте сообщение которое хотите разослать всем пользователям!")
+    await state.set_state(mailing.get_answer)
     
 @admin_router.message(content_types=types.ContentType.TEXT, state=mailing.get_teamlead)
 async def admin_start(message: Message, state: FSMContext):
@@ -47,8 +48,8 @@ async def admin_start(message: Message, state: FSMContext):
 @admin_router.message(content_types=types.ContentType.TEXT, state=mailing.get_answer)
 async def admin_start(message: Message, state: FSMContext):
     text = message.text
-    order_data = await state.get_data()
-    list_of_users = await get_list_of_authors(order_data['get_teamlead'])
+    user_id = message.from_user.id
+    list_of_users = await get_list_of_authors(user_id)
     
     if list_of_users:
         for i in list_of_users:

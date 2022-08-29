@@ -58,6 +58,9 @@ def answer_request2():
 
 def answer_speciality():
     home_buttons = ReplyKeyboardBuilder()
+    home_buttons.row(
+        types.KeyboardButton(text="Готово✅")
+    )
     home_buttons.add(
         types.KeyboardButton(text="Біологія")
     )
