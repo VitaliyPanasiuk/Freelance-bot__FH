@@ -15,6 +15,16 @@ async def reg_order(sub_id ,time, username,comment,pages,topic,type):
     cur.close()
     base.close()
     
+async def reg_order_crm(sub_id ,time, username,comment,pages,topic,type):
+    base = psycopg2.connect(DB_URI,sslmode="require")
+    cur = base.cursor()
+    data = (sub_id, time, username, type, pages,topic,comment)
+    cur.execute('INSERT INTO orders (sub_id, date, social, type, pages, topic, comment)  VALUES (%s,%s,%s,%s,%s,%s,%s)', data)
+    
+    base.commit()
+    cur.close()
+    base.close()
+    
 async def reg_author(id,card,speciality):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()

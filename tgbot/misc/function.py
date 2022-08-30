@@ -318,8 +318,9 @@ async def genid_crm():
         for deal in response['data']:
             print('chek id^' + str(deal['id']))
             if deal['328c4d26267c3f44b8f41f8d525127fc119bae6f']:
-                pass
+                print('sub_id true')
             else:
+                print('sub_id false')
                 generated_id = ''
                 test = randint(0,1000000)
                 generated_id = str(test)
@@ -329,5 +330,6 @@ async def genid_crm():
                         generated_id = str(test) 
                 data = {'328c4d26267c3f44b8f41f8d525127fc119bae6f': generated_id}
                 response = client.deals.update_deal(deal['id'], data)  
-        await asyncio.sleep(120)        
+                await orders_update.reg_order_crm(generated_id,deal['02858634b27afa9b3781ea8f4d144b223f1cdd70'],deal['deba793a0a82282ed6ee931b4ccb1f1a5f7d11d0'],deal['6b4cb9ad4eaf8a8c2b388d22f8c6a2d2a723d512'],deal['d88cd8ea3b3453d111296b960ed6205acbf75094'],deal['8a85577eeb5ffff5a1dc3871c77b103b26b7fbf3'],deal['title'])
+        await asyncio.sleep(15)        
 

@@ -18,6 +18,9 @@ from tgbot.keyboards.textBtn import typeBtn
 from tgbot.db import orders_update
 import asyncio
 
+from pipedrive.client import Client
+import json
+
 
 
 user_router = Router()
@@ -106,9 +109,20 @@ async def typeOfOrder(message: types.Message, state: FSMContext):
     now = datetime.datetime.now()
     time = now.strftime("%d-%m-%Y %H:%M")
     await orders_update.reg_order(generated_id,time,order_data['username'],order_data['comment'],order_data['pages'],order_data['topic'],order_data['type'])
-    await state.clear()
+    
     await bot.send_message(userid,"Супер! Я вже передаю твою інформацію нашому менеджеру. Він зв’яжеться з тобою найближчим часом. Гарного дня :)", reply_markup=types.ReplyKeyboardRemove())
     await orders_update.new_order(generated_id)
+    client = Client(domain='https://bunny2.pipedrive.com/')
+    client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')
+    data = {'328c4d26267c3f44b8f41f8d525127fc119bae6f': generated_id,
+            '02858634b27afa9b3781ea8f4d144b223f1cdd70': time,
+            'deba793a0a82282ed6ee931b4ccb1f1a5f7d11d0': order_data['username'],
+            '6b4cb9ad4eaf8a8c2b388d22f8c6a2d2a723d512': order_data['comment'],
+            'd88cd8ea3b3453d111296b960ed6205acbf75094': order_data['pages'],
+            '8a85577eeb5ffff5a1dc3871c77b103b26b7fbf3': order_data['topic'],
+            'title': order_data['type']}
+    response = client.deals.create_deal(data) 
+    await state.clear()
     
 
     

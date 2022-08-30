@@ -46,9 +46,8 @@ async def test_start(message: Message, state: FSMContext):
         else:
             await message.reply("Вітання!\nНадішліть мені номер своєї карти")
             await state.set_state(reg_author.get_card)
-    elif message.text.isdigit():
-         await orders_update.update_answer(message.text,str(message.from_user.id))
-         await message.reply("Ваша ставка прийнята, очікуйте на результати")
+    # elif state
+    
         
 @author_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
 async def test_start(message: Message, state: FSMContext):
@@ -60,12 +59,13 @@ async def test_start(message: Message, state: FSMContext):
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_card)
 async def admin_start(message: Message, state: FSMContext):
-    text = message.text
-    await state.update_data(get_card=text) 
-    btn = answer_speciality()
-    await bot2.send_message(message.from_user.id,"Відмінно, тепер надішліть мені свою спеціальність",reply_markup=btn.as_markup(resize_keyboard=True))
-    await state.update_data(get_speciality = None) 
-    await state.set_state(reg_author.get_speciality)
+    print(state)
+    # text = message.text
+    # await state.update_data(get_card=text) 
+    # btn = answer_speciality()
+    # await bot2.send_message(message.from_user.id,"Відмінно, тепер надішліть мені свою спеціальність",reply_markup=btn.as_markup(resize_keyboard=True))
+    # await state.update_data(get_speciality = None) 
+    # await state.set_state(reg_author.get_speciality)
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_speciality)
 async def admin_start(message: Message, state: FSMContext):
@@ -155,3 +155,10 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
             money += int(costs[1]) 
     await bot2.send_message(userid,"Ваш заробіток становитиме: " + str(money))
 
+
+# @author_router.message_handler()
+# async def test_start(message: Message, state: FSMContext):
+#     auf_status = await auf_author(str(message.from_user.id))
+#     if message.text.isdigit() and auf_status:
+#         await orders_update.update_answer(message.text,str(message.from_user.id))
+#         await message.reply("Ваша ставка прийнята, очікуйте на результати")
