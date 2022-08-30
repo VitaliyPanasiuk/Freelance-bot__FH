@@ -48,6 +48,7 @@ async def test_start(message: Message, state: FSMContext):
             await state.set_state(reg_author.get_card)
     elif message.text.isdigit():
          await orders_update.update_answer(message.text,str(message.from_user.id))
+         await message.reply("Ваша ставка прийнята, очікуйте на результати")
         
 @author_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
 async def test_start(message: Message, state: FSMContext):

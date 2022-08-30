@@ -24,15 +24,16 @@ async def postgre_start():
         private boolean default false
         )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS orders(
-        id varchar(20) primary key ,
+        id SERIAL primary key,
+        sub_id varchar(20),
         source varchar(20),
         date text,
         social text,
         speciality text,
         type varchar(45),
-        pages int,
+        pages text,
         topic text,
-        uniqueness int,
+        uniqueness text,
         real_deadline text,
         files text,
         status text,
@@ -40,8 +41,8 @@ async def postgre_start():
         author_id text REFERENCES authors(id),
         price int,
         price_status boolean,
-        costs int,
-        costs_status boolean,
+        costs text,
+        costs_status text,
         comment text,
         teamlead text,
         date_end text,
@@ -51,7 +52,7 @@ async def postgre_start():
         faculty text,
         sec_author text,
         fact_deadline text,
-        priority int default 3, 
+        priority int default 1,
         com_alert text default 0
         )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS admins(
