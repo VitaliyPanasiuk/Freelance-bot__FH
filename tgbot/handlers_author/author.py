@@ -11,7 +11,7 @@ from random import randint
 import datetime
 from tgbot.filters.authors import AuthorFilter
 
-from tgbot.misc.states import mailing, reg_author
+from tgbot.misc.states import mailing, reg_author,getOrder, private_get
 from tgbot.misc.function import check_id,auf_author
 
 from tgbot.keyboards.textBtn import typeBtn,answer_speciality
@@ -28,15 +28,34 @@ config = load_config(".env")
 bot = Bot(token=config.tg_bot.token, parse_mode='HTML')
 bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 
-@author_router.message(commands=["start"])
-async def admin_start(message: Message, state: FSMContext):
-    auf_status = await auf_author(str(message.from_user.id))
-    btn = confirm_buttons()
-    if auf_status:
-        await message.reply("Вітання!", reply_markup=btn)
-    else:
-        await message.reply("Вітання!\nНадішліть мені номер своєї карти")
-        await state.set_state(reg_author.get_card)
+
+@author_router.message_handler()
+async def test_start(message: Message, state: FSMContext):
+    if message.text == 'прийняти':
+        await orders_update.update_answer('прийняти',str(message.from_user.id))
+    elif message.text == 'відхилити':
+        await orders_update.update_answer('відхилити',str(message.from_user.id))
+    elif message.text == 'прийняти замовлення':
+        await bot2.send_message(message.from_user.id,'Надішліть ціну')
+        await state.set_state(private_get.money)  
+    elif message.text == '/start':
+        auf_status = await auf_author(str(message.from_user.id))
+        btn = confirm_buttons()
+        if auf_status:
+            await message.reply("Вітання!", reply_markup=btn.as_markup())
+        else:
+            await message.reply("Вітання!\nНадішліть мені номер своєї карти")
+            await state.set_state(reg_author.get_card)
+    elif message.text.isdigit():
+         await orders_update.update_answer(message.text,str(message.from_user.id))
+        
+@author_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
+async def test_start(message: Message, state: FSMContext):
+    await orders_update.update_answer(message.text,str(message.from_user.id))
+    await state.clear()
+# @author_router.message(commands=["start"])
+# async def admin_start(message: Message, state: FSMContext):
+   
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_card)
 async def admin_start(message: Message, state: FSMContext):
@@ -66,14 +85,15 @@ async def admin_start(message: Message, state: FSMContext):
         data = await state.get_data()
         print(data['get_speciality'])
         spec = data['get_speciality'].split('/')
-        await bot2.send_message(message.from_user.id,"Відмінно, тепер ти зареєстрований ")
+        await bot2.send_message(message.from_user.id,"Відмінно, тепер ти зареєстрований",reply_markup=types.ReplyKeyboardRemove())
         await orders_update.reg_author(str(message.from_user.id),data['get_card'],spec)
         await state.clear()
 
 
-@author_router.message(commands=["show"])
-async def admin_start(message: Message, state: FSMContext):
-    userid = message.from_user.id
+# @author_router.message(commands=["show"])
+@author_router.callback_query(lambda c: c.data == 'show')
+async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
+    userid = callback_query.from_user.id
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(userid),)
@@ -99,9 +119,10 @@ async def admin_start(message: Message, state: FSMContext):
         
         
 
-@author_router.message(commands=["earn"])
-async def admin_start(message: Message, state: FSMContext):
-    userid = message.from_user.id
+# @author_router.message(commands=["earn"])
+@author_router.callback_query(lambda c: c.data == 'earn')
+async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
+    userid = callback_query.from_user.id
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(userid),)

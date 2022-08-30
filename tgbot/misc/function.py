@@ -135,39 +135,25 @@ async def search_private_author(generated_id):
     authors = cur.fetchall()
     print(authors[0])
     print(authors[1])
-    if authors[0][0]:
-        if int(authors[0][0]) > 1:
-            money = int(authors[0][11]) / 2
-            await orders_update.confirm_order(generated_id, str(authors[0][0]))
-            await orders_update.update_price(generated_id,str(money)+ ',' + str(money))
-            await orders_update.update_busyness(order[0][5], authors[0][0])
-            await orders_update.update_answer(None,str(authors[0][0]))
-    if authors[1][0]:
-        if int(authors[1][0]) > 1:
-            money = int(authors[1][11]) / 2
-            await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
-            await orders_update.update_answer(None,str(authors[1][0]))
-            await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
-    await orders_update.update_answer(None,str(authors[0][0]))
-    await bot2.send_message(str(authors[0][0]),'Вітаю! Ваша ставка перемогла')
+    if authors[0][11].isdigit():
+        if authors[0][0]:
+            if int(authors[0][0]) > 1:
+                money = int(authors[0][11]) / 2
+                await orders_update.confirm_order(generated_id, str(authors[0][0]))
+                await orders_update.update_price(generated_id,str(money)+ ',' + str(money))
+                await orders_update.update_busyness(order[0][5], authors[0][0])
+                await orders_update.update_answer(None,str(authors[0][0]))
+        if authors[1][0]:
+            if int(authors[1][0]) > 1:
+                money = int(authors[1][11]) / 2
+                await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+                await orders_update.update_answer(None,str(authors[1][0]))
+                await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
+        await orders_update.update_answer(None,str(authors[0][0]))
+        await bot2.send_message(str(authors[0][0]),'Ваша ставка до замовлення ID ' + str(generated_id) + ' такий-то перемогла')
     
 # text = ['прийняти','відхилити','прийняти замовлення']
-@author2_router.message_handler()
-async def test_start(message: Message, state: FSMContext):
-    if message.text == 'прийняти':
-        await orders_update.update_answer('прийняти',str(message.from_user.id))
-    elif message.text == 'відхилити':
-        await orders_update.update_answer('відхилити',str(message.from_user.id))
-    elif message.text == 'прийняти замовлення':
-        await bot2.send_message(message.from_user.id,'Надішліть ціну')
-        await state.set_state(private_get.money)  
-    elif message.text.isdigit():
-         await orders_update.update_answer(message.text,str(message.from_user.id))
-        
-@author2_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
-async def test_start(message: Message, state: FSMContext):
-    await orders_update.update_answer(message.text,str(message.from_user.id))
-    await state.clear()
+
 
 async def get_list_of_authors(teamlead):
     base = psycopg2.connect(DB_URI,sslmode="require")
@@ -316,6 +302,7 @@ async def start_search():
             await search_author(str(orders[0][0]))
         cur.execute('''SELECT * FROM orders WHERE status IN ('Дізнатись ціну')''')
         orders = cur.fetchall()
+        print(orders)   
         if orders:
             await search_private_author(str(orders[0][0]))
         await asyncio.sleep(100)
