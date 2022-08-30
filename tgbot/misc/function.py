@@ -159,9 +159,9 @@ async def test_start(message: Message, state: FSMContext):
     elif message.text == 'відхилити':
         await orders_update.update_answer('відхилити',str(message.from_user.id))
     elif message.text == 'прийняти замовлення':
-        await bot2.send_message(message.from_user.id,'надішліть ціну')
+        await bot2.send_message(message.from_user.id,'Надішліть ціну')
         await state.set_state(private_get.money)  
-    else:
+    elif message.text.isdigit():
          await orders_update.update_answer(message.text,str(message.from_user.id))
         
 @author2_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
