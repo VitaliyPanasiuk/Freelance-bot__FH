@@ -1,5 +1,3 @@
-# from asyncio.windows_events import NULL
-# from curses.ascii import NUL
 import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import AsIs
@@ -15,6 +13,10 @@ from tgbot.misc.states import getOrder, private_get
 from tgbot.db import orders_update
 from tgbot.keyboards.textBtn import answer_request,answer_request2
 from random import randint
+
+from pipedrive.client import Client
+import json
+
 
 import asyncio
 import datetime
@@ -307,14 +309,25 @@ async def start_search():
             await search_private_author(str(orders[0][0]))
         await asyncio.sleep(100)
         
-# async def genid_crm():
-#     base = psycopg2.connect(DB_URI,sslmode="require")
-#     cur = base.cursor()
-#     cur.execute('''SELECT * FROM orders WHERE id = 0''')
-#     orders = cur.fetchall()
-#     for order in orders:
-#         generated_id = ''
-#         test = randint(0,1000000)
-#         generated_id = str(test)
-#         cur.execute('UPDATE orders SET author_id=%s WHERE id=%s', data)              
+async def genid_crm():
+    while True:
+        client = Client(domain='https://bunny2.pipedrive.com/')
+        client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')
+        response = client.deals.get_all_deals()
+        print('getted crm db')
+        for deal in response['data']:
+            print('chek id^' + str(deal['id']))
+            if deal['328c4d26267c3f44b8f41f8d525127fc119bae6f']:
+                pass
+            else:
+                generated_id = ''
+                test = randint(0,1000000)
+                generated_id = str(test)
+                if await check_id(generated_id):
+                    while await check_id(generated_id):
+                        test = randint(0,1000000)
+                        generated_id = str(test) 
+                data = {'328c4d26267c3f44b8f41f8d525127fc119bae6f': generated_id}
+                response = client.deals.update_deal(deal['id'], data)  
+        await asyncio.sleep(120)        
 
