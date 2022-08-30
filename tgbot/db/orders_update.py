@@ -5,11 +5,11 @@ from tgbot.config import  DB_URI
 
 
 
-async def reg_order(id,time, username,comment,pages,topic,type):
+async def reg_order(sub_id ,time, username,comment,pages,topic,type):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (id, time, username, type, pages,topic,False,comment)
-    cur.execute('INSERT INTO orders (id, date, social, type, pages, topic, costs_status, comment)  VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data)
+    data = (sub_id, time, username, type, pages,topic,False,comment)
+    cur.execute('INSERT INTO orders (sub_id, date, social, type, pages, topic, costs_status, comment)  VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data)
     
     base.commit()
     cur.close()
