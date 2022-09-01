@@ -16,8 +16,8 @@ from tgbot.db import start_db
 logger = logging.getLogger(__name__)
 
 
-async def on_startup(bot: Bot, admin_ids: list[int]):
-    await broadcaster.broadcast(bot, admin_ids, "Бот був запущений")
+# async def on_startup(bot: Bot, admin_ids: list[int]):
+#     await broadcaster.broadcast(bot, admin_ids, "Бот був запущений")
 
 
 def register_global_middlewares(dp: Dispatcher, config):
@@ -45,18 +45,19 @@ async def main():
     ]:
         dp.include_router(router)
     for router in [
-        author2_router,
-        author_router,
         admin_router,
+        author_router,
+        author2_router,  
     ]:
         dp2.include_router(router)
 
     register_global_middlewares(dp, config)
     register_global_middlewares(dp2, config)
 
-    await on_startup(bot, config.tg_bot.admin_ids)
-    await on_startup(bot2, config.tg_bot.admin_ids)
-    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2),genid_crm(), alert8(), alert12(), alert16(), start_search())
+    # await on_startup(bot, config.tg_bot.admin_ids)
+    # await on_startup(bot2, config.tg_bot.admin_ids)
+    # , alert8(), alert12(), alert16(), start_search()
+    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2))
 
 
 if __name__ == '__main__':

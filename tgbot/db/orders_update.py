@@ -25,11 +25,11 @@ async def reg_order_crm(sub_id ,time, username,comment,pages,topic,type):
     cur.close()
     base.close()
     
-async def reg_author(id,card,speciality):
+async def reg_author(id,name,card,speciality):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (id,card,speciality)
-    cur.execute('INSERT INTO authors (id,card,speciality)  VALUES (%s,%s,%s)', data)
+    data = (id,name,card,speciality)
+    cur.execute('INSERT INTO authors (id, full_name, card,speciality)  VALUES (%s,%s,%s,%s)', data)
     
     base.commit()
     cur.close()

@@ -37,10 +37,10 @@ def typeBtn():
 def answer_request():
     home_buttons = ReplyKeyboardBuilder()
     home_buttons.add(
-        types.KeyboardButton(text="прийняти")
+        types.KeyboardButton(text="✅Прийняти")
     )
     home_buttons.add(
-        types.KeyboardButton(text="відхилити")
+        types.KeyboardButton(text="❌Відхилити")
     )
     home_buttons.adjust(2)
     return home_buttons
@@ -48,10 +48,10 @@ def answer_request():
 def answer_request2():
     home_buttons = ReplyKeyboardBuilder()
     home_buttons.add(
-        types.KeyboardButton(text="прийняти замовлення")
+        types.KeyboardButton(text="✅Прийняти замовлення")
     )
     home_buttons.add(
-        types.KeyboardButton(text="відхилити")
+        types.KeyboardButton(text="❌Відхилити")
     )
     home_buttons.adjust(1)
     return home_buttons

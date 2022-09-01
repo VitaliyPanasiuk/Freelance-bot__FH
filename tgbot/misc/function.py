@@ -77,15 +77,18 @@ async def search_author(generated_id):
             costs = order[0][16].split(',')
             money += int(costs[0])
             money += int(costs[1])
-            await bot2.send_message(author[0],f'''id: {order[0][0]}
-Вид роботи: {order[0][5]}
-Тема роботи: {order[0][7]}
-Обсяг роботи: {order[0][6]} ст.
-Унікальність роботи: {order[0][8]}
-Спеціальність: {order[0][4]}
-Дедлайн: {order[0][26]}
-Коментар: {order[0][18]}
-Ціна: {money}
+            await bot2.send_message(author[0],f'''
+🟢 НОВЕ ЗАМОВЛЕННЯ 🟢
+
+🆔: {order[0][1]}
+◾️ Спеціальність: {order[0][4]}
+◽️ Вид роботи: {order[0][5]}
+◾️ Тема: {order[0][7]}
+◽️ Обсяг: {order[0][6]} ст.
+◾️ Унікальність: {order[0][8]}
+◽️ Дедлайн: {order[0][26]}
+◾️ Коментар: {order[0][18]}
+💸 Ціна: {money}
                                     ''',reply_markup=btn.as_markup(resize_keyboard=True))
             # await state.set_state(getOrder.answer)  
             await asyncio.sleep(300)
@@ -104,7 +107,7 @@ async def search_author(generated_id):
     if flag == False:
         await orders_update.decline_order(generated_id)
         await orders_update.update_answer(None,str(author_ids))
-        await bot2.send_message(str(author_ids),'Вітаю! Ваша ставка перемогла\nid: ' + str(generated_id) + '\nТема роботи: ' + order[0][7])
+        await bot2.send_message(str(author_ids),'Чудово, замовлення твоє! Якщо виникнуть питання, ти завжди можеш написати менеджеру😉\n🆔: {order[0][1]}')
         await search_private_author(generated_id)
     else:
         await orders_update.confirm_order(generated_id, str(author_ids))
@@ -123,39 +126,58 @@ async def search_private_author(generated_id):
     order = cur.fetchall()
     btn = answer_request2()
     for author in authors:
-        await bot2.send_message(author[0],f'''id: {order[0][0]}
-Вид роботи: {order[0][5]}
-Тема роботи: {order[0][7]}
-Обсяг роботи: {order[0][6]} ст.
-Унікальність роботи: {order[0][8]}
-Спеціальність: {order[0][4]}
-Дедлайн: {order[0][26]}
-Коментар: {order[0][18]}
+        await bot2.send_message(author[0],f'''
+🟡АУКЦОН🟡
+
+🆔: {order[0][1]}
+◾️ Спеціальність: {order[0][4]}
+◽️ Вид роботи: {order[0][5]}
+◾️ Тема: {order[0][7]}
+◽️ Обсяг {order[0][6]} ст.
+◾️ Унікальність: {order[0][8]}
+◽️ Дедлайн: {order[0][26]}
+◾️ Коментар: {order[0][18]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
     await asyncio.sleep(15)
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer')
     authors = cur.fetchall()
-    print(authors[0])
-    print(authors[1])
-    if authors[0][11].isdigit():
-        if authors[0][0]:
+    if len(authors) >= 1:
+        if authors[0][11].isdigit():
+            # if authors[0][0]:
             if int(authors[0][0]) > 1:
                 money = int(authors[0][11]) / 2
                 await orders_update.confirm_order(generated_id, str(authors[0][0]))
                 await orders_update.update_price(generated_id,str(money)+ ',' + str(money))
                 await orders_update.update_busyness(order[0][5], authors[0][0])
                 await orders_update.update_answer(None,str(authors[0][0]))
-        if authors[1][0]:
+                await bot2.send_message(str(authors[0][0]),'😎Твоя ставка до замовлення ID ' + str(order[0][1]) + ' перемогла! Менеджер зв`яжеться з тобою в скорому часу.')
+            await orders_update.update_answer(None,str(authors[0][0]))
+    if len(authors) >= 2:
+        if authors[1][11].isdigit():
+            # if authors[1][0]:
             if int(authors[1][0]) > 1:
                 money = int(authors[1][11]) / 2
                 await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
                 await orders_update.update_answer(None,str(authors[1][0]))
                 await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
-        await orders_update.update_answer(None,str(authors[0][0]))
-        await bot2.send_message(str(authors[0][0]),'Ваша ставка до замовлення ID ' + str(generated_id) + ' такий-то перемогла')
+            await orders_update.update_answer(None,str(authors[1][0]))
+        
     
 # text = ['прийняти','відхилити','прийняти замовлення']
-
+@author2_router.message_handler()
+async def test_start(message: Message, state: FSMContext):
+    print('handle in taken')
+    auf_status = await auf_author(str(message.from_user.id))
+    if message.text == '✅Прийняти':
+        await orders_update.update_answer('прийняти',str(message.from_user.id))
+    elif message.text == '❌Відхилити':
+        await orders_update.update_answer('відхилити',str(message.from_user.id))
+    elif message.text == '✅Прийняти замовлення':
+        await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")')
+        await state.set_state(private_get.money)  
+    elif message.text.isdigit() and auf_status:
+        await orders_update.update_answer(message.text,str(message.from_user.id))
+        await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
 
 async def get_list_of_authors(teamlead):
     base = psycopg2.connect(DB_URI,sslmode="require")
@@ -186,14 +208,14 @@ async def alert8():
             hours36 = time + text36
             hours48 = time + text48
             if now < hours48:
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
             elif now < hours36:
                 if orders[27] < 3:
                     data = (3,str(order[0]))
                     cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно терміново скласти та надіслати план протягом 12год')
             elif now < hours24:
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно скласти та надіслати план протягом 12год')
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', потрібно скласти та надіслати план протягом 12год')
         await asyncio.sleep(43200)
 
 
@@ -216,33 +238,28 @@ async def alert12():
             hours48 = time - text48
             hours24 = time - text24
             hours12 = time - text12
-            print(order)
-            print(order[13])
-            print(order[0])
-            print(order[27])
-            print(order[26])
             if now > hours12:
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
             elif now > hours24 and orders[27] != '12 - 24h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', завтра дедлайн - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', завтра дедлайн - ' + str(orders[26]))
                 if orders[27] <= 4:
                     data = (5,str(order[0]))
                     cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
                 data = ('12 - 24h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
             elif now > hours48 and orders[27] != '12 - 48h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 2 дні - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 2 дні - ' + str(orders[26]))
                 data = ('12 - 48h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
                 if orders[27] <= 3:
                     data = (4,str(order[0]))
                     cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
             elif now > hours72 and orders[27] != '12 - 72h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 3 дні - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 3 дні - ' + str(orders[26]))
                 data = ('12 - 72h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
             elif now > hours120 and orders[27] != '12 - 120h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 5 днів - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн за 5 днів - ' + str(orders[26]))
                 data = ('12 - 120h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
         await asyncio.sleep(43200)
@@ -267,27 +284,27 @@ async def alert16():
             hours24 = time - text24
             hours12 = time - text12
             if now > hours12:
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн - ' + str(orders[26]) + ', потрібно ТЕРМІНОВО надіслати роботу')
             elif now > hours24 and orders[27] != '16 - 24h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 1 день - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 1 день - ' + str(orders[26]))
                 if orders[27] <= 4:
                     data = (5,str(order[0]))
                     cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
                 data = ('16 - 24h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
             elif now > hours48 and orders[27] != '16 - 48h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 2 дні - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 2 дні - ' + str(orders[26]))
                 data = ('16 - 48h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
                 if orders[27] <= 3:
                     data = (4,str(order[0]))
                     cur.execute('UPDATE orders SET priority=%s WHERE id=%s', data)
             elif now > hours72 and orders[27] != '16 - 72h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 3 дні - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 3 дні - ' + str(orders[26]))
                 data = ('16 - 72h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
             elif now > hours120 and orders[27] != '16 - 120h':
-                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[0]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 5 днів - ' + str(orders[26]))
+                await bot2.send_message(order[13],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[27]) + ', дедлайн на внесення правок за 5 днів - ' + str(orders[26]))
                 data = ('16 - 120h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
         await asyncio.sleep(43200)
@@ -299,12 +316,10 @@ async def start_search():
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('Знайти автора')''')
         orders = cur.fetchall()
-        print(orders)
         if orders:
             await search_author(str(orders[0][0]))
         cur.execute('''SELECT * FROM orders WHERE status IN ('Дізнатись ціну')''')
-        orders = cur.fetchall()
-        print(orders)   
+        orders = cur.fetchall() 
         if orders:
             await search_private_author(str(orders[0][0]))
         await asyncio.sleep(100)
