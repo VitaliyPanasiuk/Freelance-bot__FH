@@ -65,17 +65,14 @@ async def search_author(generated_id):
     order = cur.fetchall()
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
     authors = cur.fetchall()
-    print(authors)
     flag = False
     author_ids = ''
     btn = answer_request()
     flag_for = False
     for author in authors:
-        print('send to author')
-        print(author[0])
         if order[0][5] in author[7]:
             money = 0
-            costs = order[0][17].split(',')
+            costs = order[0][15].split(',')
             money += int(costs[0])
             money += int(costs[1])
             await bot2.send_message(author[0],f'''
@@ -91,7 +88,7 @@ async def search_author(generated_id):
 ◾️ Коментар: {order[0][19]}
 💸 Ціна: {money}
             ''',reply_markup=btn.as_markup(resize_keyboard=True))
-            await asyncio.sleep(15)
+            await asyncio.sleep(300)
             cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
             authors = cur.fetchall()
             
@@ -101,7 +98,6 @@ async def search_author(generated_id):
                     flag = True
                     author_ids = str(author[0])
                     break
-        print(flag_for)
         if flag_for:
             break
     for author in authors:
@@ -199,29 +195,32 @@ async def search_private_author(generated_id):
 ◽️ Дедлайн: {order[0][27]}
 ◾️ Коментар: {order[0][19]}
                                 ''',reply_markup=btn.as_markup(resize_keyboard=True))
-    await asyncio.sleep(15)
+    await asyncio.sleep(7200)
     cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer')
     authors = cur.fetchall()
     if len(authors) >= 1:
-        if authors[0][11].isdigit():
-            # if authors[0][0]:
-            if int(authors[0][0]) > 1:
-                money = int(authors[0][11]) / 2
-                await orders_update.confirm_order(generated_id, str(authors[0][0]))
-                await orders_update.update_price(generated_id,str(money)+ ',' + str(money))
-                await orders_update.update_busyness(order[0][5], authors[0][0])
+        if authors[0][11]:
+            if authors[0][11].isdigit():
+                # if authors[0][0]:
+                if int(authors[0][0]) > 1:
+                    money = int(authors[0][11]) / 2
+                    await orders_update.confirm_order(generated_id, str(authors[0][0]))
+                    price = str(money)+ ',' + str(money)
+                    await orders_update.update_price(generated_id,price)
+                    await orders_update.update_busyness(order[0][5], authors[0][0])
+                    await orders_update.update_answer(None,str(authors[0][0]))
+                    await bot2.send_message(str(authors[0][0]),'😎Твоя ставка до замовлення ID ' + str(order[0][1]) + ' перемогла! Менеджер зв`яжеться з тобою в скорому часу.')
                 await orders_update.update_answer(None,str(authors[0][0]))
-                await bot2.send_message(str(authors[0][0]),'😎Твоя ставка до замовлення ID ' + str(order[0][1]) + ' перемогла! Менеджер зв`яжеться з тобою в скорому часу.')
-            await orders_update.update_answer(None,str(authors[0][0]))
     if len(authors) >= 2:
-        if authors[1][11].isdigit():
-            # if authors[1][0]:
-            if int(authors[1][0]) > 1:
-                money = int(authors[1][11]) / 2
-                await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+        if authors[1][11]:
+            if authors[1][11].isdigit():
+                # if authors[1][0]:
+                if int(authors[1][0]) > 1:
+                    money = int(authors[1][11]) / 2
+                    await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+                    await orders_update.update_answer(None,str(authors[1][0]))
+                    await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
                 await orders_update.update_answer(None,str(authors[1][0]))
-                await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
-            await orders_update.update_answer(None,str(authors[1][0]))
         
     
 # text = ['прийняти','відхилити','прийняти замовлення']
@@ -229,6 +228,7 @@ async def search_private_author(generated_id):
 async def test_start(message: Message, state: FSMContext):
     print('handle in taken')
     auf_status = await auf_author(str(message.from_user.id))
+    
     if message.text == '✅Прийняти':
         await orders_update.update_answer('прийняти',str(message.from_user.id))
     elif message.text == '❌Відхилити':
@@ -237,8 +237,9 @@ async def test_start(message: Message, state: FSMContext):
         await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")')
         await state.set_state(private_get.money)  
     elif message.text.isdigit() and auf_status:
-        await orders_update.update_answer(message.text,str(message.from_user.id))
         await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
+        await orders_update.update_answer(message.text,str(message.from_user.id))
+    
 
 async def get_list_of_authors(teamlead):
     base = psycopg2.connect(DB_URI,sslmode="require")
@@ -392,11 +393,9 @@ async def genid_crm():
         response = client.deals.get_all_deals()
         print('getted crm db')
         for deal in response['data']:
-            print('chek id^' + str(deal['id']))
             if deal['328c4d26267c3f44b8f41f8d525127fc119bae6f']:
                 pass
             else:
-                print('sub_id false')
                 generated_id = ''
                 test = randint(0,1000000)
                 generated_id = str(test)
