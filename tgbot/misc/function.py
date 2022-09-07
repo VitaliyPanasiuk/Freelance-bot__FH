@@ -109,7 +109,8 @@ async def search_author(generated_id):
         await bot2.send_message(str(author_ids),f'Чудово, замовлення твоє! Якщо виникнуть питання, ти завжди можеш написати менеджеру😉\n🆔: {order[0][1]}')
         await orders_update.confirm_order(generated_id, str(author_ids))
         await orders_update.update_busyness(order[0][5], str(author_ids))
-        
+    cur.close()
+    base.close()    
     
 
 
@@ -221,7 +222,8 @@ async def search_private_author(generated_id):
                     await orders_update.update_answer(None,str(authors[1][0]))
                     await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
                 await orders_update.update_answer(None,str(authors[1][0]))
-        
+    cur.close()
+    base.close()    
     
 # text = ['прийняти','відхилити','прийняти замовлення']
 @author2_router.message_handler()
@@ -279,7 +281,8 @@ async def alert8():
             elif now < hours24:
                 await bot2.send_message(order[14],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[28]) + ', потрібно скласти та надіслати план протягом 12год')
         await asyncio.sleep(43200)
-
+        cur.close()
+        base.close()
 
 async def alert12():
     while True:
@@ -324,6 +327,8 @@ async def alert12():
                 await bot2.send_message(order[14],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[28]) + ', дедлайн за 5 днів - ' + str(orders[27]))
                 data = ('12 - 120h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+        cur.close()
+        base.close()
         await asyncio.sleep(43200)
         
 async def alert16():
@@ -369,6 +374,8 @@ async def alert16():
                 await bot2.send_message(order[14],'Нагадування! До замовлення №' + str(order[1]) + ', пріоритетність — ' + str(orders[28]) + ', дедлайн на внесення правок за 5 днів - ' + str(orders[27]))
                 data = ('16 - 120h',str(order[0]))
                 cur.execute('UPDATE orders SET com_alert=%s WHERE id=%s', data)
+        cur.close()
+        base.close()
         await asyncio.sleep(43200)
             
 async def start_search():
@@ -384,6 +391,8 @@ async def start_search():
         orders = cur.fetchall() 
         if orders:
             await search_private_author(str(orders[0][0]))
+        cur.close()
+        base.close()
         await asyncio.sleep(100)
         
 async def genid_crm():

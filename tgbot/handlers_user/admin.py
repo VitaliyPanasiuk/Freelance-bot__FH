@@ -144,3 +144,5 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
         total_earn += earn_orders
     last_message += 'Сума = ' + str(total_earn)
     await bot2.send_message(user_id, last_message)
+    cur.close()
+    base.close() 
