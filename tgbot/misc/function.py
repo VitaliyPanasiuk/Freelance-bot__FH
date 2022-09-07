@@ -348,3 +348,49 @@ async def genid_crm():
                 await orders_update.reg_order_crm(generated_id,deal['02858634b27afa9b3781ea8f4d144b223f1cdd70'],deal['deba793a0a82282ed6ee931b4ccb1f1a5f7d11d0'],deal['6b4cb9ad4eaf8a8c2b388d22f8c6a2d2a723d512'],deal['d88cd8ea3b3453d111296b960ed6205acbf75094'],deal['8a85577eeb5ffff5a1dc3871c77b103b26b7fbf3'],deal['title'])
         await asyncio.sleep(15)        
 
+async def check_coeff():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        cur.execute('''SELECT * FROM orders WHERE coeff = null''')
+        orders = cur.fetchall()    
+        for order in orders:
+            if order[5] == 'Ece':
+                data = (0.3,str(order[0]))
+            elif order[5] == 'Тези':
+                data = (0.5,str(order[0]))
+            elif order[5] == 'Реферат':
+                data = (0.5,str(order[0]))
+            elif order[5] == 'Практичне завдання':
+                data = (1,str(order[0]))
+            elif order[5] == 'Презентація':
+                data = (0.3,str(order[0]))
+            elif order[5] == 'Курсова':
+                data = (1,str(order[0]))
+            elif order[5] == 'Дипломна':
+                data = (1.5,str(order[0]))
+            elif order[5] == 'Магістерська':
+                data = (2,str(order[0]))
+            else:
+                data = (0.1,str(order[0]))
+            cur.execute('UPDATE orders SET coeff = %s WHERE id=%s', data)
+        await asyncio.sleep(20)   
+
+async def change_coeff_author():
+    while True:
+        base = psycopg2.connect(DB_URI,sslmode="require")
+        cur = base.cursor()
+        
+        cur.execute('''SELECT * FROM authors''')
+        authors = cur.fetchall()
+        for author in authors:
+            data = (str(author[0]),)
+            cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('План','План готовий','План відправлено','План затверджено','В роботі','
+Правки в роботі')''',data)
+            orders = cur.fetchall() 
+            busyness = 0
+            for order in orders:
+                busyness += order[0]
+            data2 = (busyness,author[0])
+            cur.execute('UPDATE authors SET busyness=%s  WHERE id=%s', data2)
+        await asyncio.sleep(20) 
