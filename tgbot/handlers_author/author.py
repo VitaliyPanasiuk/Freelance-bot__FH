@@ -55,7 +55,7 @@ async def test_start(message: Message, state: FSMContext):
     await state.clear()
 # @author_router.message(commands=["start"])
 # async def admin_start(message: Message, state: FSMContext):
-   
+
     
 @author_router.message(content_types=types.ContentType.TEXT, state=reg_author.get_card)
 async def admin_start(message: Message, state: FSMContext):
@@ -120,7 +120,8 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
 ◾️ Коментар: {order[18]}
 💸 Ціна: {money}
                                 ''')
-        
+    cur.close()
+    base.close()   
         
 
 # @author_router.message(commands=["earn"])
@@ -152,6 +153,7 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
         elif cost_status[0] == 'true' and cost_status[1] == 'false':
             money += float(costs[1]) 
     await bot2.send_message(userid,"💵Сума за тиждень: " + str(money))
-
+    cur.close()
+    base.close() 
 
 

@@ -8,8 +8,8 @@ from tgbot.config import  DB_URI
 async def reg_order(sub_id ,time, username,comment,pages,topic,type):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (sub_id, time, username, type, pages,topic,False,comment)
-    cur.execute('INSERT INTO orders (sub_id, date, social, type, pages, topic, costs_status, comment)  VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data)
+    data = (sub_id, time, username, type, pages,topic,'Нова заявка','false,false',comment)
+    cur.execute('INSERT INTO orders (sub_id, date, social, type, pages, topic,status, costs_status, comment)  VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)', data)
     
     base.commit()
     cur.close()
@@ -41,6 +41,8 @@ async def confirm_order(order_id,author_id):
     cur = base.cursor()
     data = (str(author_id),str(order_id))
     cur.execute('UPDATE orders SET author_id=%s WHERE id=%s', data)
+    data2 = ('Підтвердження автора',str(order_id))
+    cur.execute('UPDATE orders SET status=%s WHERE id=%s', data2)
     
     base.commit()
     cur.close()
@@ -60,6 +62,7 @@ async def update_price(order_id,price):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     data = (str(price),str(order_id))
+    print('update price')
     cur.execute('UPDATE orders SET costs=%s WHERE id=%s', data)
     
     base.commit()
