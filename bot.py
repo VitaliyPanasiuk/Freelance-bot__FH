@@ -8,7 +8,7 @@ from tgbot.config import load_config
 from tgbot.handlers_user.admin import admin_router
 from tgbot.handlers_user.user import user_router
 from tgbot.handlers_author.author import author_router
-from tgbot.misc.function import author2_router, alert8,alert12,alert16,start_search,genid_crm
+from tgbot.misc.function import author2_router, alert8,alert12,alert16,start_search,genid_crm,check_coeff,change_coeff_author
 from tgbot.middlewares.config import ConfigMiddleware
 from tgbot.services import broadcaster
 from tgbot.db import start_db
@@ -56,8 +56,8 @@ async def main():
 
     # await on_startup(bot, config.tg_bot.admin_ids)
     # await on_startup(bot2, config.tg_bot.admin_ids)
-    
-    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2), start_search(), alert8(), alert12(), alert16(),genid_crm())
+
+    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2), alert8(), alert12(), alert16(), start_search(),genid_crm(),check_coeff(),change_coeff_author())
 
 
 if __name__ == '__main__':
