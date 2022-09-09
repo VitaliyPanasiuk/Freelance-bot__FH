@@ -331,11 +331,9 @@ async def genid_crm():
         response = client.deals.get_all_deals()
         print('getted crm db')
         for deal in response['data']:
-            print('chek id^' + str(deal['id']))
             if deal['328c4d26267c3f44b8f41f8d525127fc119bae6f']:
-                print('sub_id true')
+                pass
             else:
-                print('sub_id false')
                 generated_id = ''
                 test = randint(0,1000000)
                 generated_id = str(test)
@@ -350,36 +348,72 @@ async def genid_crm():
 
 async def check_coeff():
     while True:
+        client = Client(domain='https://bunny2.pipedrive.com/')
+        client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
-        cur.execute('''SELECT * FROM orders WHERE coeff = null''')
-        orders = cur.fetchall()    
+        cur.execute('''SELECT * FROM orders WHERE coeff is null''')
+        orders = cur.fetchall() 
+        print('stsrt coeff')   
         for order in orders:
-            if order[5] == 'Ece':
+            print('start db orders')
+            print(order[6])
+            if order[6] == 'Ece':
                 data = (0.3,str(order[0]))
-            elif order[5] == 'Тези':
+            elif order[6] == 'Тези':
                 data = (0.5,str(order[0]))
-            elif order[5] == 'Реферат':
+            elif order[6] == 'Реферат':
                 data = (0.5,str(order[0]))
-            elif order[5] == 'Практичне завдання':
+            elif order[6] == 'Практичне завдання':
                 data = (1,str(order[0]))
-            elif order[5] == 'Презентація':
+            elif order[6] == 'Презентація':
                 data = (0.3,str(order[0]))
-            elif order[5] == 'Курсова':
+            elif order[6] == 'Курсова':
                 data = (1,str(order[0]))
-            elif order[5] == 'Дипломна':
+            elif order[6] == 'Дипломна':
                 data = (1.5,str(order[0]))
-            elif order[5] == 'Магістерська':
+            elif order[6] == 'Магістерська':
                 data = (2,str(order[0]))
             else:
                 data = (0.1,str(order[0]))
+            print(data)
             cur.execute('UPDATE orders SET coeff = %s WHERE id=%s', data)
+        response = client.deals.get_all_deals()
+        for deal in response['data']:
+            if deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5']:
+                pass
+            else:
+                if order[6] == 'Ece':
+                    data2 = 0.3
+                elif order[6] == 'Тези':
+                    data2 = 0.5
+                elif order[6] == 'Реферат':
+                    data2 = 0.5
+                elif order[6] == 'Практичне завдання':
+                    data2 = 1
+                elif order[6] == 'Презентація':
+                    data2 = 0.3
+                elif order[6] == 'Курсова':
+                    data2 = 1
+                elif order[6] == 'Дипломна':
+                    data2 = 1.5
+                elif order[6] == 'Магістерська':
+                    data2 = 2
+                else:
+                    data2 = 0.1
+                data3 = {'e064f61333ed4f712c0a5d477f0ed1717ba2dac5': data2}
+                response = client.deals.update_deal(deal['id'], data3)
+        base.commit()
+        cur.close()
+        base.close()
         await asyncio.sleep(20)   
 
 async def change_coeff_author():
     while True:
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
+        client = Client(domain='https://bunny2.pipedrive.com/')
+        client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')
         
         cur.execute('''SELECT * FROM authors''')
         authors = cur.fetchall()
@@ -390,7 +424,22 @@ async def change_coeff_author():
             orders = cur.fetchall() 
             busyness = 0
             for order in orders:
-                busyness += order[0]
+                busyness += order[31]
             data2 = (busyness,author[0])
             cur.execute('UPDATE authors SET busyness=%s  WHERE id=%s', data2)
+            
+        response = client.persons.get_all_persons()
+        for person in response['data']:
+            dataPerson = (str(person['bfd35a539d4245a1f9bec7eec940895ac95cbc9e']),)
+            cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('План','План готовий','План відправлено','План затверджено','В роботі','
+Правки в роботі')''',dataPerson)
+            orders = cur.fetchall() 
+            busyness = 0
+            for order in orders:
+                busyness += order[31]
+            data2 = {'54a0484f423cfa667810528287eb140ecb24ecf9': busyness}
+            response = client.persons.update_person(person['id'], data2)
+        base.commit()
+        cur.close()
+        base.close()
         await asyncio.sleep(20) 
