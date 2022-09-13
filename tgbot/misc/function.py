@@ -454,21 +454,21 @@ async def check_coeff():
             if deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5']:
                 pass
             else:
-                if order[6] == 'Ece':
+                if deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Ece':
                     data2 = 0.3
-                elif order[6] == 'Тези':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Тези':
                     data2 = 0.5
-                elif order[6] == 'Реферат':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Реферат':
                     data2 = 0.5
-                elif order[6] == 'Практичне завдання':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Практичне завдання':
                     data2 = 1
-                elif order[6] == 'Презентація':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Презентація':
                     data2 = 0.3
-                elif order[6] == 'Курсова':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Курсова':
                     data2 = 1
-                elif order[6] == 'Дипломна':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Дипломна':
                     data2 = 1.5
-                elif order[6] == 'Магістерська':
+                elif deal['e064f61333ed4f712c0a5d477f0ed1717ba2dac5'] == 'Магістерська':
                     data2 = 2
                 else:
                     data2 = 0.1
@@ -481,6 +481,7 @@ async def check_coeff():
 
 async def change_coeff_author():
     while True:
+        print('start change_coeff_author')
         base = psycopg2.connect(DB_URI,sslmode="require")
         cur = base.cursor()
         client = Client(domain='https://bunny2.pipedrive.com/')
@@ -495,7 +496,8 @@ async def change_coeff_author():
             orders = cur.fetchall() 
             busyness = 0
             for order in orders:
-                busyness += order[31]
+                print(order)
+                busyness += order[32]
             data2 = (busyness,author[0])
             cur.execute('UPDATE authors SET busyness=%s  WHERE id=%s', data2)
             
@@ -507,9 +509,9 @@ async def change_coeff_author():
             orders = cur.fetchall() 
             busyness = 0
             for order in orders:
-                busyness += order[31]
-            data2 = {'54a0484f423cfa667810528287eb140ecb24ecf9': busyness}
-            response = client.persons.update_person(person['id'], data2)
+                busyness += float(order[32])
+            data4 = {'54a0484f423cfa667810528287eb140ecb24ecf9': busyness}
+            response = client.persons.update_person(person['id'], data4)
         base.commit()
         cur.close()
         base.close()
