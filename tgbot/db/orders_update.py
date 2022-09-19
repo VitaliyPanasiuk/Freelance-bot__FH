@@ -28,19 +28,23 @@ async def reg_order_crm(sub_id ,time, username,comment,pages,topic,type):
 async def reg_author(id,name,card,speciality):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (id,name,card,speciality)
-    cur.execute('INSERT INTO authors (id, full_name, card,speciality)  VALUES (%s,%s,%s,%s)', data)
+    cur.execute("SELECT * FROM authors_ids WHERE author_id = %s",(str(id),))
+    author_id = cur.fetchone()
+    data = (id,name,card,speciality,author_id[0])
+    cur.execute('INSERT INTO authors (id, full_name, card,speciality,authors_ids)  VALUES (%s,%s,%s,%s,%s)', data)
     
     base.commit()
     cur.close()
     base.close()
     
     
-async def confirm_order(order_id,author_id):
+async def confirm_order(order_id, author_id):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
-    data = (str(author_id),str(order_id))
-    cur.execute('UPDATE orders SET author_id=%s WHERE id=%s', data)
+    cur.execute("SELECT full_name FROM authors WHERE id = %s",(str(author_id),))
+    author_name = cur.fetchone()
+    data = (str(author_id),author_name[0],str(order_id))
+    cur.execute('UPDATE orders SET author_id=%s AND author_name = %s WHERE id=%s', data)
     data2 = ('Підтвердження автора',str(order_id))
     cur.execute('UPDATE orders SET status=%s WHERE id=%s', data2)
     
