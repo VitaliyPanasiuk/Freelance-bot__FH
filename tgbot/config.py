@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from environs import Env
 import os
 
-DB_URI = 'postgres://dciydempsuflmu:c58efd2b3ec4d432bcdccf401c5343ca2c09c3c6d8d9f1e8f2698330e3572ff3@ec2-50-19-255-190.compute-1.amazonaws.com:5432/db03aoprqprn98'
+DB_URI = 'postgres://dcnfirqzrwytme:c4c56dad1312454198e059036ee2a0747b05b4cbc1cef3f9133e1f31b78388ba@ec2-34-202-5-87.compute-1.amazonaws.com:5432/d4fqto9tiii03i'
 import psycopg2
 from psycopg2 import sql
 
