@@ -41,19 +41,34 @@ async def check_id(id):
     base.close()
     return answer
 
+# async def auf_author(id):
+#     base = psycopg2.connect(DB_URI,sslmode="require")
+#     cur = base.cursor()
+#     id = str(id)
+#     cur.execute('SELECT * FROM authors')
+#     users = cur.fetchall()
+#     answer = False
+#     for user in users:
+#         if user[0] == id:
+#             answer = True
+#     cur.close()
+#     base.close()
+#     return answer
 async def auf_author(id):
     base = psycopg2.connect(DB_URI,sslmode="require")
     cur = base.cursor()
     id = str(id)
-    cur.execute('SELECT * FROM authors ')
-    users = cur.fetchall()
-    answer = False
-    for user in users:
-        if user[0] == id:
-            answer = True
-    cur.close()
-    base.close()
-    return answer
+    cur.execute('SELECT * FROM authors where id = %s',(id,))
+    users = cur.fetchone()
+    if users:
+        cur.close()
+        base.close()
+        return True
+    else:
+        cur.close()
+        base.close()
+        return False
+    
 
 
 
