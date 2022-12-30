@@ -76,8 +76,8 @@ def load_config(path: str = None):
     authors = get_authors()   
     return Config(
         tg_bot=TgBot(
-            token='5685497946:AAFZ77-e0F9Wsbs6F_qISHuXIZriXNqUxXM',
-            token2='5748354596:AAEzgb8SIxLAh8OOR8h0vNbNtZkAoMoFiZg',
+            token='',
+            token2='',
             admin_ids=list(map(int, admins)),
             authors_ids=list(map(int, authors)),
             use_redis=False,
