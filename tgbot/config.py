@@ -83,10 +83,10 @@ def load_config(path: str = None):
             use_redis=False,
         ),
         db=DbConfig(
-            host='',
-            password='',
-            user='',
-            database=''
+            host='localhost',
+            password='2705GH',
+            user='chat',
+            database='chat',
         ),
         misc=Miscellaneous()
     )
