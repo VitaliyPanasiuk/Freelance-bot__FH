@@ -12,7 +12,7 @@ def get_admins():
             host='localhost',
             password='2545',
             user='postgres',
-            database='free',)
+            database='postgres',)
     cur = base.cursor()
     admins = []
     try:
@@ -22,6 +22,7 @@ def get_admins():
             admins.append(i[1])
     except:
         admins.append('1')
+    print(admins)
     cur.close()
     base.close()
     return admins
@@ -31,7 +32,7 @@ def get_authors():
             host='localhost',
             password='2545',
             user='postgres',
-            database='free')
+            database='postgres')
     cur = base.cursor()
     authors = []
     try:
@@ -41,6 +42,7 @@ def get_authors():
             authors.append(i[1])
     except:
         authors.append('1')
+    print(authors)
     cur.close()
     base.close()
     return authors

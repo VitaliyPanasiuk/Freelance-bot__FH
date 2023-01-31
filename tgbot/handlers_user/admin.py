@@ -29,7 +29,7 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 
 
 
-@admin_router.message(commands=["start"])
+@admin_router.message(commands=["start2"], state="*")
 async def admin_start(message: Message, state: FSMContext):
     btn = adm_buttons()
     await message.reply("Здравствуй админ!",reply_markup=btn.as_markup())

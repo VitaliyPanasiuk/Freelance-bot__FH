@@ -33,27 +33,33 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 async def test_start(message: Message, state: FSMContext):
     print('handle in start')
     print(message.text)
-    if message.text == '/start':
-        auf_status = await auf_author(str(message.from_user.id))
-        btn = confirm_buttons()
-        if auf_status:
-            await message.reply("Вітання!", reply_markup=btn.as_markup())
-        else:
-            await message.reply("Привіт! 👋\nНадішли мені номер своєї карти, бажано приват універсальну (тільки не для виплат)💳")
-            await state.set_state(reg_author.get_card) 
-    elif message.text.isdigit() and auf_status == False:
-        text = message.text
-        await state.update_data(get_card=text) 
-        btn = answer_speciality()
-        await bot2.send_message(message.from_user.id,'Чудово! 👍 Вкажи перелік спеціальностей, які тебе цікавлять та натисни кнопку "✅Готово"',reply_markup=btn.as_markup(resize_keyboard=True))
-        await state.update_data(get_speciality = None) 
-        await state.set_state(reg_author.get_speciality)  
+    # if message.text == '/start':
+    auf_status = await auf_author(str(message.from_user.id))
+    btn = confirm_buttons()
+    if auf_status:
+        await message.reply("Вітання!", reply_markup=btn.as_markup())
+    else:
+        await message.reply("Привіт! 👋\nНадішли мені номер своєї карти, бажано приват універсальну (тільки не для виплат)💳")
+        await state.set_state(reg_author.get_card) 
+    # elif message.text.isdigit() and auf_status == False:
+    #     text = message.text
+    #     await state.update_data(get_card=text) 
+    #     btn = answer_speciality()
+    #     await bot2.send_message(message.from_user.id,'Чудово! 👍 Вкажи перелік спеціальностей, які тебе цікавлять та натисни кнопку "✅Готово"',reply_markup=btn.as_markup(resize_keyboard=True))
+    #     await state.update_data(get_speciality = None) 
+    #     await state.set_state(reg_author.get_speciality)  
         
 
 @author_router.message_handler(content_types=types.ContentType.TEXT, state=private_get.money)
 async def test_start(message: Message, state: FSMContext):
-    await orders_update.update_answer(message.text,str(message.from_user.id))
-    await state.clear()
+    text = message.text
+    await state.update_data(get_card=text) 
+    btn = answer_speciality()
+    await bot2.send_message(message.from_user.id,'Чудово! 👍 Вкажи перелік спеціальностей, які тебе цікавлять та натисни кнопку "✅Готово"',reply_markup=btn.as_markup(resize_keyboard=True))
+    await state.update_data(get_speciality = None) 
+    await state.set_state(reg_author.get_speciality)
+    # await orders_update.update_answer(message.text,str(message.from_user.id))
+    # await state.clear()
 # @author_router.message(commands=["start"])
 # async def admin_start(message: Message, state: FSMContext):
 

@@ -9,7 +9,7 @@ from aiogram.types import Message,FSInputFile
 from tgbot.config import load_config
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.fsm.state import State, StatesGroup
-from tgbot.misc.states import getOrder, private_get
+from tgbot.misc.states import getOrder, private_get,get_money
 from tgbot.db import orders_update
 from tgbot.keyboards.textBtn import answer_request,answer_request2
 from random import randint
@@ -120,7 +120,7 @@ async def search_author(generated_id):
 ◾️ Коментар: {order[0][19]}
 💸 Ціна: {money}
             ''',reply_markup=btn.as_markup(resize_keyboard=True))
-            await asyncio.sleep(10)
+            await asyncio.sleep(300)
             cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
             authors = cur.fetchall()
             
@@ -270,24 +270,49 @@ async def search_private_author(generated_id):
         pass  
     
 # text = ['прийняти','відхилити','прийняти замовлення']
-@author2_router.message_handler()
+@author2_router.message_handler(text=['✅Прийняти'])
 async def test_start(message: Message, state: FSMContext):
-    print('handle in taken')
+    print('handle in ✅Прийняти')
     auf_status = await auf_author(str(message.from_user.id))
+    await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.",reply_markup=types.ReplyKeyboardRemove())
+    await orders_update.update_answer('прийняти',str(message.from_user.id))
     
-    if message.text == '✅Прийняти':
-        await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.",reply_markup=types.ReplyKeyboardRemove())
-        await orders_update.update_answer('прийняти',str(message.from_user.id))
-    elif message.text == '❌Відхилити':
-        await message.reply("Спасибі за відповідь",reply_markup=types.ReplyKeyboardRemove())
-        await orders_update.update_answer('відхилити',str(message.from_user.id))
-    elif message.text == '✅Прийняти замовлення':
-        await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")',reply_markup=types.ReplyKeyboardRemove())
-        await state.set_state(private_get.money)  
-    elif message.text.isdigit() and auf_status:
-        await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
-        await orders_update.update_answer(message.text,str(message.from_user.id))
+    # if message.text == '✅Прийняти':
+    #     await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.",reply_markup=types.ReplyKeyboardRemove())
+    #     await orders_update.update_answer('прийняти',str(message.from_user.id))
+    # elif message.text == '❌Відхилити':
+    #     await message.reply("Спасибі за відповідь",reply_markup=types.ReplyKeyboardRemove())
+    #     await orders_update.update_answer('відхилити',str(message.from_user.id))
+    # elif message.text == '✅Прийняти замовлення':
+    #     await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")',reply_markup=types.ReplyKeyboardRemove())
+    #     await state.set_state(private_get.money)  
+    # elif message.text.isdigit() and auf_status:
+    #     await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
+    #     await orders_update.update_answer(message.text,str(message.from_user.id))
     
+@author2_router.message_handler(text=['❌Відхилити'])
+async def test_start(message: Message, state: FSMContext):
+    print('handle in ❌Відхилити')
+    auf_status = await auf_author(str(message.from_user.id))
+    await message.reply("Спасибі за відповідь",reply_markup=types.ReplyKeyboardRemove())
+    await orders_update.update_answer('відхилити',str(message.from_user.id))
+    
+    
+@author2_router.message_handler(text=['✅Прийняти замовлення'])
+async def test_start(message: Message, state: FSMContext):
+    print('handle in ✅Прийняти замовлення')
+    auf_status = await auf_author(str(message.from_user.id))
+    await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")',reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(get_money.money)  
+    
+@author2_router.message_handler(content_types=types.ContentType.TEXT, state=get_money.money)
+async def test_start(message: Message, state: FSMContext):
+    text = message.text
+    await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
+    await orders_update.update_answer(message.text,str(message.from_user.id))
+    await state.clear()
+
+
 
 async def get_list_of_authors(teamlead):
     base = psycopg2.connect(

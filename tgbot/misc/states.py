@@ -15,6 +15,9 @@ class getOrder(StatesGroup):
 class private_get(StatesGroup):
     money = State()
     
+class get_money(StatesGroup):
+    money = State()
+    
 class mailing(StatesGroup):
     get_teamlead = State()
     get_answer = State()
