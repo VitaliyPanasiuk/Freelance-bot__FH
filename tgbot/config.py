@@ -93,8 +93,8 @@ def load_config(path: str = None):
         db=DbConfig(
             host='localhost',
             password='2545',
-            user='free',
-            database='free',
+            user='postgres',
+            database='postgres',
         ),
         misc=Miscellaneous()
     )

@@ -86,4 +86,3 @@ async def postgre_start():
     base.commit()
     cur.close()
     base.close()
-    
