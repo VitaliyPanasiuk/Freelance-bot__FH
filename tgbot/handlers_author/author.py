@@ -32,6 +32,7 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 @author_router.message(commands=["start"])
 async def test_start(message: Message, state: FSMContext):
     print('handle in start')
+    print(message.text)
     if message.text == '/start':
         auf_status = await auf_author(str(message.from_user.id))
         btn = confirm_buttons()
@@ -96,7 +97,11 @@ async def admin_start(message: Message, state: FSMContext):
 @author_router.callback_query(lambda c: c.data == 'show')
 async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
     userid = callback_query.from_user.id
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(userid),)
     cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('План','План готовий','План відправлено','
@@ -128,7 +133,11 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
 @author_router.callback_query(lambda c: c.data == 'earn')
 async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
     userid = callback_query.from_user.id
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(userid),)
     cur.execute('''SELECT * FROM orders WHERE author_id = %s and status IN ('Готово/правки','Правки','Правки в роботі','Правки відправлені','Готово') ORDER BY priority DESC''',data)

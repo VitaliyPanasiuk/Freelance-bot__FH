@@ -56,8 +56,10 @@ async def main():
 
     # await on_startup(bot, config.tg_bot.admin_ids)
     # await on_startup(bot2, config.tg_bot.admin_ids)
-    # , alert8(), alert12(), alert16()
-    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2), start_search(),genid_crm(),check_coeff(),change_coeff_author())
+    # ,genid_crm()
+    # ,check_coeff()
+    # ,change_coeff_author()
+    await asyncio.gather(dp.start_polling(bot), dp2.start_polling(bot2), start_search())
 
 
 if __name__ == '__main__':

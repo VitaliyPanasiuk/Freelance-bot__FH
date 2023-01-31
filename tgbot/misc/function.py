@@ -28,7 +28,11 @@ bot2 = Bot(token=config.tg_bot.token2, parse_mode='HTML')
 
 
 async def check_id(id):
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     id = str(id)
     cur.execute('SELECT * FROM orders ')
@@ -42,7 +46,11 @@ async def check_id(id):
     return answer
 
 # async def auf_author(id):
-#     base = psycopg2.connect(DB_URI,sslmode="require")
+#     base = psycopg2.connect(
+        # dbname=config.db.database,
+        # user=config.db.user,
+        # password=config.db.password,
+        # host=config.db.host,)
 #     cur = base.cursor()
 #     id = str(id)
 #     cur.execute('SELECT * FROM authors')
@@ -55,7 +63,11 @@ async def check_id(id):
 #     base.close()
 #     return answer
 async def auf_author(id):
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     id = str(id)
     cur.execute('SELECT * FROM authors where id = %s',(id,))
@@ -72,8 +84,12 @@ async def auf_author(id):
 
 
 
-async def search_author(generated_id): 
-    base = psycopg2.connect(DB_URI,sslmode="require")
+async def search_author(generated_id):
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(generated_id),)
     cur.execute('SELECT * FROM orders WHERE id = %s', data)
@@ -85,14 +101,15 @@ async def search_author(generated_id):
     btn = answer_request()
     flag_for = False
     for author in authors:
+        print(order[0][5],author[7])
         if order[0][5] in author[7]:
-            money = 0
-            costs = order[0][15].split(',')
-            money += int(costs[0])
-            money += int(costs[1])
+            # money = 0
+            # costs = order[0][15].split(',')
+            # money += int(costs[0])
+            # money += int(costs[1])
+            money = order[0][15]
             await bot2.send_message(author[0],f'''
 🟢 НОВЕ ЗАМОВЛЕННЯ 🟢
-
 🆔: {order[0][1]}
 ◾️ Спеціальність: {order[0][5]}
 ◽️ Вид роботи: {order[0][6]}
@@ -103,7 +120,7 @@ async def search_author(generated_id):
 ◾️ Коментар: {order[0][19]}
 💸 Ціна: {money}
             ''',reply_markup=btn.as_markup(resize_keyboard=True))
-            await asyncio.sleep(300)
+            await asyncio.sleep(10)
             cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness  ORDER BY rating DESC')
             authors = cur.fetchall()
             
@@ -125,13 +142,18 @@ async def search_author(generated_id):
         await orders_update.confirm_order(generated_id, str(author_ids))
         await orders_update.update_busyness(order[0][5], str(author_ids))
     cur.close()
-    base.close()    
+    base.close()   
+    
     
 
 
         
 # async def search_author(generated_id): 
-#     base = psycopg2.connect(DB_URI,sslmode="require")
+#     base = psycopg2.connect(dbname=config.db.database,
+        # user=config.db.user,
+        # password=config.db.password,
+        # host=config.db.host,)
+        # 
 #     cur = base.cursor()
 #     data = (str(generated_id),)
 #     cur.execute('SELECT * FROM orders WHERE id = %s', data)
@@ -190,55 +212,62 @@ async def search_author(generated_id):
         
 async def search_private_author(generated_id): 
     print('start_private')
-    base = psycopg2.connect(DB_URI,sslmode="require")
-    cur = base.cursor()
-    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY rating DESC')
-    authors = cur.fetchall()
-    data = (str(generated_id),)
-    cur.execute('SELECT * FROM orders WHERE id = %s', data)
-    order = cur.fetchall()
-    btn = answer_request2()
-    for author in authors:
-        await bot2.send_message(author[0],f'''
-🟡АУКЦОН🟡
+    try:
+        base = psycopg2.connect(
+            dbname=config.db.database,
+            user=config.db.user,
+            password=config.db.password,
+            host=config.db.host,)
+        cur = base.cursor()
+        cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY rating DESC')
+        authors = cur.fetchall()
+        data = (str(generated_id),)
+        cur.execute('SELECT * FROM orders WHERE id = %s', data)
+        order = cur.fetchall()
+        btn = answer_request2()
+        for author in authors:
+            await bot2.send_message(author[0],f'''
+    🟡АУКЦОН🟡
 
-🆔: {order[0][1]}
-◾️ Спеціальність: {order[0][5]}
-◽️ Вид роботи: {order[0][6]}
-◾️ Тема: {order[0][8]}
-◽️ Обсяг {order[0][7]} ст.
-◾️ Унікальність: {order[0][9]}
-◽️ Дедлайн: {order[0][27]}
-◾️ Коментар: {order[0][19]}
-                                ''',reply_markup=btn.as_markup(resize_keyboard=True))
-    await asyncio.sleep(7200)
-    cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer')
-    authors = cur.fetchall()
-    if len(authors) >= 1:
-        if authors[0][11]:
-            if authors[0][11].isdigit():
-                # if authors[0][0]:
-                if int(authors[0][0]) > 1:
-                    money = int(authors[0][11]) / 2
-                    await orders_update.confirm_order(generated_id, str(authors[0][0]))
-                    price = str(money)+ ',' + str(money)
-                    await orders_update.update_price(generated_id,price)
-                    await orders_update.update_busyness(order[0][5], authors[0][0])
+    🆔: {order[0][1]}
+    ◾️ Спеціальність: {order[0][5]}
+    ◽️ Вид роботи: {order[0][6]}
+    ◾️ Тема: {order[0][8]}
+    ◽️ Обсяг {order[0][7]} ст.
+    ◾️ Унікальність: {order[0][9]}
+    ◽️ Дедлайн: {order[0][27]}
+    ◾️ Коментар: {order[0][19]}
+                                    ''',reply_markup=btn.as_markup(resize_keyboard=True))
+        await asyncio.sleep(7200)
+        cur.execute('SELECT * FROM authors WHERE busyness <= authors.plane_busyness and private = true ORDER BY answer')
+        authors = cur.fetchall()
+        if len(authors) >= 1:
+            if authors[0][11]:
+                if authors[0][11].isdigit():
+                    # if authors[0][0]:
+                    if int(authors[0][0]) > 1:
+                        money = int(authors[0][11]) / 2
+                        await orders_update.confirm_order(generated_id, str(authors[0][0]))
+                        price = str(money)+ ',' + str(money)
+                        await orders_update.update_price(generated_id,price)
+                        await orders_update.update_busyness(order[0][5], authors[0][0])
+                        await orders_update.update_answer(None,str(authors[0][0]))
+                        await bot2.send_message(str(authors[0][0]),'😎Твоя ставка до замовлення ID ' + str(order[0][1]) + ' перемогла! Менеджер зв`яжеться з тобою в скорому часу.')
                     await orders_update.update_answer(None,str(authors[0][0]))
-                    await bot2.send_message(str(authors[0][0]),'😎Твоя ставка до замовлення ID ' + str(order[0][1]) + ' перемогла! Менеджер зв`яжеться з тобою в скорому часу.')
-                await orders_update.update_answer(None,str(authors[0][0]))
-    if len(authors) >= 2:
-        if authors[1][11]:
-            if authors[1][11].isdigit():
-                # if authors[1][0]:
-                if int(authors[1][0]) > 1:
-                    money = int(authors[1][11]) / 2
-                    await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+        if len(authors) >= 2:
+            if authors[1][11]:
+                if authors[1][11].isdigit():
+                    # if authors[1][0]:
+                    if int(authors[1][0]) > 1:
+                        money = int(authors[1][11]) / 2
+                        await orders_update.confirm_sec_order(generated_id, str(authors[1][0]))
+                        await orders_update.update_answer(None,str(authors[1][0]))
+                        await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
                     await orders_update.update_answer(None,str(authors[1][0]))
-                    await orders_update.update_sec_price(generated_id,str(money)+ ',' + str(money))
-                await orders_update.update_answer(None,str(authors[1][0]))
-    cur.close()
-    base.close()    
+        cur.close()
+        base.close()  
+    except:
+        pass  
     
 # text = ['прийняти','відхилити','прийняти замовлення']
 @author2_router.message_handler()
@@ -247,11 +276,13 @@ async def test_start(message: Message, state: FSMContext):
     auf_status = await auf_author(str(message.from_user.id))
     
     if message.text == '✅Прийняти':
+        await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.",reply_markup=types.ReplyKeyboardRemove())
         await orders_update.update_answer('прийняти',str(message.from_user.id))
     elif message.text == '❌Відхилити':
+        await message.reply("Спасибі за відповідь",reply_markup=types.ReplyKeyboardRemove())
         await orders_update.update_answer('відхилити',str(message.from_user.id))
     elif message.text == '✅Прийняти замовлення':
-        await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")')
+        await bot2.send_message(message.from_user.id,'👇Вкажи свою ставку (лише число, без "грн")',reply_markup=types.ReplyKeyboardRemove())
         await state.set_state(private_get.money)  
     elif message.text.isdigit() and auf_status:
         await message.reply("⚖️Ставку прийнято! Ти отримаєш сповіщення, якщо твоя ставка виграє.")
@@ -259,7 +290,11 @@ async def test_start(message: Message, state: FSMContext):
     
 
 async def get_list_of_authors(teamlead):
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(teamlead),)
     cur.execute('SELECT * FROM authors WHERE teamlead = %s',data)
@@ -273,7 +308,11 @@ async def get_list_of_authors(teamlead):
 
 async def alert8():
     while True:
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('План') and alert = true''')
         orders = cur.fetchall()
@@ -301,7 +340,11 @@ async def alert8():
 
 async def alert12():
     while True:
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі') and alert = true''')
         orders = cur.fetchall()
@@ -348,7 +391,11 @@ async def alert12():
         
 async def alert16():
     while True:
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('В роботі') and alert = true''')
         orders = cur.fetchall()
@@ -396,7 +443,11 @@ async def alert16():
 async def start_search():
     while True:
         print('start_search')
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE status IN ('Знайти автора')''')
         orders = cur.fetchall()
@@ -436,7 +487,11 @@ async def check_coeff():
     while True:
         client = Client(domain='https://bunny2.pipedrive.com/')
         client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         cur.execute('''SELECT * FROM orders WHERE coeff is null''')
         orders = cur.fetchall() 
@@ -497,7 +552,11 @@ async def check_coeff():
 async def change_coeff_author():
     while True:
         print('start change_coeff_author')
-        base = psycopg2.connect(DB_URI,sslmode="require")
+        base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
         cur = base.cursor()
         client = Client(domain='https://bunny2.pipedrive.com/')
         client.set_api_token('83b3829fdfc9028b7bf80a419f7d77cb4c217742')

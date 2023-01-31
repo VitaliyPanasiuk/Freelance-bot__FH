@@ -8,7 +8,11 @@ import psycopg2
 from psycopg2 import sql
 
 def get_admins():
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+            host='localhost',
+            password='2545',
+            user='postgres',
+            database='free',)
     cur = base.cursor()
     admins = []
     try:
@@ -23,7 +27,11 @@ def get_admins():
     return admins
 
 def get_authors():
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+            host='localhost',
+            password='2545',
+            user='postgres',
+            database='free')
     cur = base.cursor()
     authors = []
     try:
@@ -76,17 +84,17 @@ def load_config(path: str = None):
     authors = get_authors()   
     return Config(
         tg_bot=TgBot(
-            token='',
-            token2='',
+            token='5685497946:AAFZ77-e0F9Wsbs6F_qISHuXIZriXNqUxXM',
+            token2='5748354596:AAEzgb8SIxLAh8OOR8h0vNbNtZkAoMoFiZg',
             admin_ids=list(map(int, admins)),
             authors_ids=list(map(int, authors)),
             use_redis=False,
         ),
         db=DbConfig(
             host='localhost',
-            password='2705GH',
-            user='chat',
-            database='chat',
+            password='2545',
+            user='free',
+            database='free',
         ),
         misc=Miscellaneous()
     )

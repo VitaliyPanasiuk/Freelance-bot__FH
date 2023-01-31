@@ -75,7 +75,11 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
 async def admin_start(message: Message, state: FSMContext):
     
     text = message.text
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(text),)
     cur.execute('INSERT INTO authors_ids (authors_id)  VALUES (%s)', data)
@@ -95,7 +99,11 @@ async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
 async def admin_start(message: Message, state: FSMContext):
     
     text = message.text
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data = (str(text),)
     cur.execute('UPDATE authors SET private = true WHERE id=%s', data)
@@ -118,7 +126,11 @@ async def admin_start(message: Message, state: FSMContext):
 @admin_router.callback_query(lambda c: c.data == "authorslist")
 async def admin_start(callback_query: types.CallbackQuery, state: FSMContext):
     user_id = callback_query.from_user.id
-    base = psycopg2.connect(DB_URI,sslmode="require")
+    base = psycopg2.connect(
+        dbname=config.db.database,
+        user=config.db.user,
+        password=config.db.password,
+        host=config.db.host,)
     cur = base.cursor()
     data1 = (str(user_id),)
     cur.execute('''SELECT * FROM authors WHERE teamlead = %s''',data1)
